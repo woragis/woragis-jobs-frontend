@@ -1,38 +1,50 @@
-# sv
+# Jobs Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This is a SvelteKit frontend for the Jobs service.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Job application management (create, view, list, update, delete)
+- Status tracking and filtering
+- Tag management
+- Responsive UI with Tailwind CSS
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Setup
 
-# create a new project in my-app
-npx sv create my-app
+1. Install dependencies:
+```bash
+npm install
 ```
 
-## Developing
+2. Configure environment variables:
+```bash
+cp .env.example .env
+```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Edit `.env` and set:
+- `PUBLIC_JOBS_API_URL` - URL of the jobs backend service (default: http://localhost:3002)
+- `PUBLIC_AUTH_API_URL` - URL of the auth service (default: http://localhost:3001)
 
-```sh
+3. Run development server:
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+## Architecture
 
-To create a production version of your app:
+The frontend follows a clean architecture pattern:
 
-```sh
-npm run build
-```
+- **Types** (`src/lib/api/job-applications/types.ts`): TypeScript interfaces matching backend entities
+- **API Client** (`src/lib/api/job-applications/client.ts`): Axios-based API client with authentication
+- **Pages** (`src/routes/job-applications/`): Svelte components for UI
 
-You can preview the production build with `npm run preview`.
+## API Integration
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The frontend uses axios for HTTP requests with automatic token injection. Authentication tokens are stored in localStorage and automatically included in API requests.
+
+## Pages
+
+- `/` - Home page
+- `/job-applications` - List all job applications with filters
+- `/job-applications/new` - Create a new job application
+- `/job-applications/[id]` - View and manage a specific job application
