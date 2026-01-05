@@ -180,7 +180,7 @@
 					<div class="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-800">{success}</div>
 				{/if}
 
-				<form class="space-y-4" on:submit|preventDefault={updateProfile}>
+				<form class="space-y-4" onsubmit={(e) => { e.preventDefault(); updateProfile(); }}>
 					<div>
 						<label for="bio" class="block text-sm font-medium text-gray-700 mb-1">
 							Bio
@@ -268,7 +268,7 @@
 				</div>
 
 				{#if showPasswordForm}
-					<form class="space-y-4" on:submit|preventDefault={changePassword}>
+					<form class="space-y-4" onsubmit={(e) => { e.preventDefault(); changePassword(); }}>
 						<div>
 							<label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">
 								Current Password
