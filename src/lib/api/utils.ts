@@ -1,24 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-
-/**
- * Simple token storage (can be replaced with cookies later)
- * For now, using localStorage
- */
-const tokenStorage = {
-	getAccessToken(): string | null {
-		if (typeof window === 'undefined') return null;
-		return localStorage.getItem('access_token');
-	},
-	setAccessToken(token: string): void {
-		if (typeof window === 'undefined') return;
-		localStorage.setItem('access_token', token);
-	},
-	clearTokens(): void {
-		if (typeof window === 'undefined') return;
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
-	},
-};
+import { tokenCookies } from './auth/cookies';
 
 /**
  * Creates an axios instance with automatic token injection
@@ -35,7 +16,7 @@ export function createAuthenticatedClient(baseURL: string): AxiosInstance {
 	// Add request interceptor to include access token in headers
 	client.interceptors.request.use(
 		(config) => {
-			const token = tokenStorage.getAccessToken();
+			const token = tokenCookies.getAccessToken();
 			if (token) {
 				config.headers.Authorization = `Bearer ${token}`;
 			}
