@@ -7,7 +7,7 @@ import type {
 	UpdateJobApplicationStatusRequest,
 	ListJobApplicationsParams,
 	PaginatedResponse,
-	ApiResponse,
+	ApiResponse
 } from './types';
 
 /**
@@ -37,7 +37,7 @@ class JobApplicationsApiClient {
 	 * Update a job application
 	 */
 	async update(id: string, data: UpdateJobApplicationRequest): Promise<JobApplication> {
-		const response = await this.client.put<ApiResponse<JobApplication>>(`/${id}`, data);
+		const response = await this.client.patch<ApiResponse<JobApplication>>(`/${id}`, data);
 		return response.data.data;
 	}
 
@@ -68,7 +68,8 @@ class JobApplicationsApiClient {
 		if (params?.resumeId) queryParams.append('resumeId', params.resumeId);
 		if (params?.interestLevel) queryParams.append('interestLevel', params.interestLevel);
 		if (params?.source) queryParams.append('source', params.source);
-		if (params?.applicationMethod) queryParams.append('applicationMethod', params.applicationMethod);
+		if (params?.applicationMethod)
+			queryParams.append('applicationMethod', params.applicationMethod);
 		if (params?.language) queryParams.append('language', params.language);
 
 		const queryString = queryParams.toString();
@@ -80,4 +81,3 @@ class JobApplicationsApiClient {
 
 // Export singleton instance
 export const jobApplicationsApi = new JobApplicationsApiClient();
-

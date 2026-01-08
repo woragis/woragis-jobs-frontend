@@ -41,8 +41,14 @@
 						Job Applications
 					</a>
 					<div class="flex gap-4">
+						<a href="/dashboard" class="text-sm text-gray-700 hover:text-blue-600">
+							Dashboard
+						</a>
 						<a href="/job-applications" class="text-sm text-gray-700 hover:text-blue-600">
 							Applications
+						</a>
+						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600">
+							Resumes
 						</a>
 						<a href="/job-applications/new" class="text-sm text-gray-700 hover:text-blue-600">
 							New Application

@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { jobApplicationsApi, type CreateJobApplicationRequest } from '$lib/api/job-applications';
 	import { goto } from '$app/navigation';
+	import { config } from '$lib/config';
 
 	let formData: CreateJobApplicationRequest = {
 		companyName: '',
@@ -10,12 +12,30 @@
 		website: 'linkedin',
 		interestLevel: undefined,
 		tags: [],
-		notes: ''
+		notes: '',
+		followUpDate: undefined
 	};
 
 	let loading = false;
 	let error: string | null = null;
 	let tagInput = '';
+
+	// Fetch CSRF token on page load
+	onMount(async () => {
+		try {
+			// Make a GET request to the dedicated CSRF token endpoint
+			// The backend middleware will generate a new token and set it in the X-CSRF-Token header
+			// Our response interceptor will extract it and store it in memory
+			await fetch(`${config.jobsApiUrl}/csrf-token`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+		} catch (err: any) {
+			// Even if the request fails, the CSRF token should still be set
+			// The middleware generates tokens for all GET requests, regardless of auth status
+			console.debug('CSRF token fetch completed (may have errors, but token should be set)');
+		}
+	});
 
 	const websiteOptions = ['linkedin', 'glassdoor', 'indeed', 'monster', 'other'];
 	const interestLevelOptions = ['low', 'medium', 'high', 'very-high'] as const;
@@ -41,11 +61,38 @@
 		error = null;
 
 		try {
+			// The CSRF token should already be fetched in onMount
+			// The request interceptor will automatically include it in the X-CSRF-Token header
 			const application = await jobApplicationsApi.create(formData);
 			goto(`/job-applications/${application.id}`);
 		} catch (err: any) {
-			error = err.response?.data?.message || err.message || 'Failed to create job application';
-			console.error('Error creating application:', err);
+			// If we get a CSRF error, try to fetch a new token and retry once
+			if (err.response?.status === 403) {
+				const errorMsg = err.response?.data?.error;
+				if (errorMsg && (errorMsg.includes('CSRF') || errorMsg.includes('csrf'))) {
+					console.debug('CSRF token expired or invalid, fetching new token and retrying...');
+					try {
+						// Fetch new token from dedicated endpoint
+						await fetch(`${config.jobsApiUrl}/csrf-token`, {
+							method: 'GET',
+							credentials: 'include',
+						});
+						// Retry the create request
+						const application = await jobApplicationsApi.create(formData);
+						goto(`/job-applications/${application.id}`);
+						return;
+					} catch (retryErr: any) {
+						error = retryErr.response?.data?.message || retryErr.message || 'Failed to create job application';
+						console.error('Error creating application after retry:', retryErr);
+					}
+				} else {
+					error = err.response?.data?.message || err.message || 'Failed to create job application';
+					console.error('Error creating application:', err);
+				}
+			} else {
+				error = err.response?.data?.message || err.message || 'Failed to create job application';
+				console.error('Error creating application:', err);
+			}
 		} finally {
 			loading = false;
 		}
@@ -146,7 +193,7 @@
 			>
 				<option value={undefined}>Select interest level...</option>
 				{#each interestLevelOptions as level}
-					<option value={level}>{level.charAt(0).toUpperCase() + level.slice(1)}</option>
+					<option value={level.replace(/-/g, '_')}>{level.charAt(0).toUpperCase() + level.slice(1).replace(/-/g, ' ')}</option>
 				{/each}
 			</select>
 		</div>
@@ -188,6 +235,16 @@
 					{/each}
 				</div>
 			{/if}
+		</div>
+
+		<div>
+			<label for="followUpDate" class="block text-sm font-medium text-gray-700 mb-1">Follow-up Date</label>
+			<input
+				id="followUpDate"
+				type="date"
+				bind:value={formData.followUpDate}
+				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+			/>
 		</div>
 
 		<div>

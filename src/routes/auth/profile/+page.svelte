@@ -5,9 +5,12 @@
 	import { authStore, currentUser, currentProfile } from '$lib/stores/auth';
 	import type { ProfileUpdateRequest, ChangePasswordRequest } from '$lib/api/auth';
 
-	let profile = $derived($currentProfile);
-	let user = $derived($currentUser);
-	
+	let profile: any;
+	let user: any;
+
+	// keep reactive references to the stores
+	$: profile = $currentProfile;
+	$: user = $currentUser;
 	let loading = false;
 	let saving = false;
 	let error = '';
@@ -26,13 +29,16 @@
 	let showPasswordForm = false;
 
 	onMount(() => {
-		if (profile) {
-			bio = profile.bio || '';
-			phone = profile.phone || '';
-			location = profile.location || '';
-			website = profile.website || '';
-		}
+		loadProfile();
 	});
+
+	// initialize form fields when profile becomes available, but only if fields are empty
+	$: if (profile && bio === '' && phone === '' && location === '' && website === '') {
+		bio = profile.bio || '';
+		phone = profile.phone || '';
+		location = profile.location || '';
+		website = profile.website || '';
+	}
 
 	async function loadProfile() {
 		loading = true;

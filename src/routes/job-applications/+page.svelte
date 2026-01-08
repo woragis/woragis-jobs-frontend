@@ -79,7 +79,12 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="mb-6 flex items-center justify-between">
-		<h1 class="text-3xl font-bold text-gray-900">Job Applications</h1>
+		<div>
+			<h1 class="text-3xl font-bold text-gray-900">Job Applications</h1>
+			<nav class="mt-2 flex gap-4 text-sm">
+				<a href="/resumes" class="text-blue-600 hover:text-blue-700">My Resumes</a>
+			</nav>
+		</div>
 		<button
 			onclick={() => goto('/job-applications/new')}
 			class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors"

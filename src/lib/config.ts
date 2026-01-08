@@ -7,7 +7,13 @@ import { env } from '$env/dynamic/public';
  */
 const getJobsApiUrl = (): string => {
 	// Access the env variables at runtime with fallback to development default
-	const baseUrl = env.PUBLIC_JOBS_API_URL || 'http://localhost:3002';
+	const baseUrl = env.PUBLIC_JOBS_API_URL || 'http://localhost:3011';
+
+	// Debug: Log the URL being used (only in development)
+	if (import.meta.env.DEV) {
+		console.log('[Config] PUBLIC_JOBS_API_URL from env:', env.PUBLIC_JOBS_API_URL);
+		console.log('[Config] Using jobs API URL:', baseUrl);
+	}
 
 	// Remove trailing slash if present
 	const cleanUrl = baseUrl.replace(/\/$/, '');
@@ -18,12 +24,35 @@ const getJobsApiUrl = (): string => {
 
 const getAuthApiUrl = (): string => {
 	// Access the env variables at runtime with fallback to development default
-	const baseUrl = env.PUBLIC_AUTH_API_URL || 'http://localhost:3001';
+	const baseUrl = env.PUBLIC_AUTH_API_URL || 'http://localhost:3010';
+
+	// Debug: Log the URL being used (only in development)
+	if (import.meta.env.DEV) {
+		console.log('[Config] PUBLIC_AUTH_API_URL from env:', env.PUBLIC_AUTH_API_URL);
+		console.log('[Config] Using auth API URL:', baseUrl);
+	}
 
 	// Remove trailing slash if present
 	const cleanUrl = baseUrl.replace(/\/$/, '');
 	
 	// Add /api/v1 prefix as all routes are under /api/v1
+	return `${cleanUrl}/api/v1`;
+};
+
+const getMlApiUrl = (): string => {
+	// Access the env variables at runtime with fallback to development default
+	const baseUrl = env.PUBLIC_ML_API_URL || 'http://localhost:3020';
+
+	// Debug: Log the URL being used (only in development)
+	if (import.meta.env.DEV) {
+		console.log('[Config] PUBLIC_ML_API_URL from env:', env.PUBLIC_ML_API_URL);
+		console.log('[Config] Using ML API URL:', baseUrl);
+	}
+
+	// Remove trailing slash if present
+	const cleanUrl = baseUrl.replace(/\/$/, '');
+	
+	// ML service uses /api/v1 prefix
 	return `${cleanUrl}/api/v1`;
 };
 
@@ -35,6 +64,9 @@ export const config = {
 	},
 	get authApiUrl() {
 		return getAuthApiUrl();
+	},
+	get mlApiUrl() {
+		return getMlApiUrl();
 	}
 };
 

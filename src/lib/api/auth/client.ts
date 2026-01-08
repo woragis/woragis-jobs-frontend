@@ -30,6 +30,7 @@ class AuthApiClient {
 			headers: {
 				'Content-Type': 'application/json',
 			},
+			withCredentials: true, // Required for CORS with credentials
 		});
 
 		// Add request interceptor to include access token in headers
