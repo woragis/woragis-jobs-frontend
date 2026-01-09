@@ -6,7 +6,9 @@ import type {
 	UpdateResumeRequest,
 	ApiResponse,
 	PaginatedResponse,
-	ListResumesParams
+	ListResumesParams,
+	GenerateResumeRequest,
+	GenerateResumeResponse
 } from './types';
 
 /**
@@ -136,6 +138,15 @@ class ResumesApiClient {
 	 */
 	async setAsFeatured(id: string): Promise<Resume> {
 		const response = await this.client.patch<ApiResponse<Resume>>(`/${id}/set-featured`, {});
+		return response.data.data;
+	}
+
+	/**
+	 * Generate a new resume using AI
+	 * Returns a job ID that can be used to track progress via SSE
+	 */
+	async generate(data: GenerateResumeRequest): Promise<GenerateResumeResponse> {
+		const response = await this.client.post<ApiResponse<GenerateResumeResponse>>('/generate', data);
 		return response.data.data;
 	}
 }

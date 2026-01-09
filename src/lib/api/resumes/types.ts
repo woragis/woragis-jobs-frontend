@@ -50,6 +50,19 @@ export interface ApiResponse<T> {
 	success: boolean;
 }
 
+export interface GenerateResumeRequest {
+	jobId?: string;
+	jobDescription?: string;
+	title?: string;
+	preferences?: Record<string, any>;
+}
+
+export interface GenerateResumeResponse {
+	jobId: string;
+	status: 'pending';
+	message: string;
+}
+
 export interface ListResumesParams {
 	page?: number;
 	limit?: number;
