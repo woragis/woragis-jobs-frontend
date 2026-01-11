@@ -50,6 +50,9 @@
 						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600">
 							Resumes
 						</a>
+						<a href="/resumes/generate" class="text-sm text-blue-600 font-semibold hover:text-blue-700">
+							✨ Generate Resume
+						</a>
 						<a href="/job-applications/new" class="text-sm text-gray-700 hover:text-blue-600">
 							New Application
 						</a>

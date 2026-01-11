@@ -1,29 +1,28 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { subscribeToResumeGeneration, getStepMessage, type ResumeGenerationEvent } from '$lib/api/resumes/sse';
+	import { subscribeToResumeGeneration, type ResumeGenerationEvent } from '$lib/api/resumes/sse';
 
 	export let jobId: string;
-	export let onComplete: (downloadUrl: string) => void;
+	export let onComplete: (resumeId: string) => void;
 	export let onError: (error: string) => void;
 
 	let event: ResumeGenerationEvent = {
 		status: 'pending',
-		progress: 0,
+		progress: 10,
 		message: 'Starting resume generation...'
 	};
 
 	let unsubscribe: (() => void) | null = null;
 
 	onMount(() => {
-		// Subscribe to SSE updates
+		// Subscribe to polling updates
 		unsubscribe = subscribeToResumeGeneration(jobId, {
 			onUpdate: (evt) => {
 				event = evt;
-				event.message = getStepMessage(evt.step);
 			},
-			onComplete: (downloadUrl) => {
+			onComplete: (resumeId) => {
 				event = { ...event, status: 'completed', progress: 100, message: 'Resume generated!' };
-				onComplete(downloadUrl);
+				onComplete(resumeId);
 			},
 			onError: (error) => {
 				event = { 
@@ -47,10 +46,10 @@
 		<h3>Generating Your Resume</h3>
 		{#if event.status === 'completed'}
 			<span class="status-badge success">✓ Complete</span>
-		{:else if event.status === 'failed'}
-			<span class="status-badge error">✗ Failed</span>
+		{:else if event.status === 'failed' || event.status === 'cancelled'}
+			<span class="status-badge error">✗ {event.status === 'cancelled' ? 'Cancelled' : 'Failed'}</span>
 		{:else}
-			<span class="status-badge processing">⟳ Processing</span>
+			<span class="status-badge processing">⟳ {event.status === 'processing' ? 'Processing' : 'Queued'}</span>
 		{/if}
 	</div>
 
@@ -62,12 +61,12 @@
 		<div 
 			class="progress-fill" 
 			class:complete={event.status === 'completed'}
-			class:error={event.status === 'failed'}
+			class:error={event.status === 'failed' || event.status === 'cancelled'}
 			style="width: {event.progress || 0}%"
 		></div>
 	</div>
 
-	{#if event.progress !== undefined}
+	{#if event.progress !== undefined && event.status !== 'failed' && event.status !== 'cancelled'}
 		<div class="progress-percent">{Math.round(event.progress)}%</div>
 	{/if}
 

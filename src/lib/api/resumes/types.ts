@@ -51,16 +51,31 @@ export interface ApiResponse<T> {
 }
 
 export interface GenerateResumeRequest {
-	jobId?: string;
-	jobDescription?: string;
-	title?: string;
-	preferences?: Record<string, any>;
+	jobApplicationId: string;
+	language?: string;
 }
 
 export interface GenerateResumeResponse {
 	jobId: string;
 	status: 'pending';
 	message: string;
+}
+
+export interface ResumeJobStatus {
+	id: string;
+	status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+	retryCount?: number;
+	maxRetries?: number;
+	createdAt: string;
+	updatedAt: string;
+	error?: string;
+	errorType?: string;
+	errorAt?: string;
+	result?: {
+		resumeId: string;
+		filePath: string;
+		fileSize: number;
+	};
 }
 
 export interface ListResumesParams {

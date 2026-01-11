@@ -143,10 +143,18 @@ class ResumesApiClient {
 
 	/**
 	 * Generate a new resume using AI
-	 * Returns a job ID that can be used to track progress via SSE
+	 * Returns a job ID that can be used to track progress
 	 */
 	async generate(data: GenerateResumeRequest): Promise<GenerateResumeResponse> {
 		const response = await this.client.post<ApiResponse<GenerateResumeResponse>>('/generate', data);
+		return response.data.data;
+	}
+
+	/**
+	 * Get the status of a resume generation job
+	 */
+	async getJobStatus(jobId: string): Promise<import('./types').ResumeJobStatus> {
+		const response = await this.client.get<ApiResponse<import('./types').ResumeJobStatus>>(`/jobs/${jobId}`);
 		return response.data.data;
 	}
 }

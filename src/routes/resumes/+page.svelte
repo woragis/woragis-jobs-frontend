@@ -111,7 +111,12 @@
 </script>
 
 <div class="resumes-container">
-	<h1>My Resumes</h1>
+	<div class="header-section">
+		<h1>My Resumes</h1>
+		<a href="/resumes/generate" class="btn-generate-ai">
+			✨ Generate with AI
+		</a>
+	</div>
 
 	{#if error}
 		<div class="alert alert-error">
@@ -224,10 +229,38 @@
 		padding: 2rem;
 	}
 
+	.header-section {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
+
 	h1 {
 		font-size: 2rem;
-		margin-bottom: 2rem;
+		margin: 0;
 		color: #333;
+	}
+
+	.btn-generate-ai {
+		padding: 12px 24px;
+		background: linear-gradient(135deg, #0066cc, #0052a3);
+		color: white;
+		border: none;
+		border-radius: 8px;
+		font-size: 15px;
+		font-weight: 600;
+		text-decoration: none;
+		cursor: pointer;
+		transition: transform 0.2s, box-shadow 0.2s;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.btn-generate-ai:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
 	}
 
 	h2 {

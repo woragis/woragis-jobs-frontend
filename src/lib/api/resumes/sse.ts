@@ -1,9 +1,12 @@
 /**
- * Server-Sent Events (SSE) utilities for real-time resume generation updates
+ * Polling utilities for resume generation updates
  */
 
+import { resumesApi } from './client';
+import type { ResumeJobStatus } from './types';
+
 export interface ResumeGenerationEvent {
-	status: 'pending' | 'processing' | 'completed' | 'failed';
+	status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 	step?: string;
 	progress?: number;
 	message?: string;
@@ -11,51 +14,110 @@ export interface ResumeGenerationEvent {
 	error?: string;
 }
 
-export interface SSEOptions {
+export interface PollingOptions {
 	onUpdate: (event: ResumeGenerationEvent) => void;
 	onError?: (error: Error) => void;
-	onComplete?: (downloadUrl: string) => void;
+	onComplete?: (resumeId: string) => void;
+	interval?: number; // Polling interval in ms, default 2000
 }
 
 /**
- * Creates an SSE connection to track resume generation progress
+ * Polls the job status endpoint to track resume generation progress
  * @param jobId - The resume job ID to track
  * @param options - Callbacks for handling updates
- * @returns A function to close the connection
+ * @returns A function to stop polling
  */
-export function subscribeToResumeGeneration(jobId: string, options: SSEOptions): () => void {
-	const apiUrl = import.meta.env.VITE_JOBS_API_URL || 'http://localhost:4000';
-	const eventSource = new EventSource(`${apiUrl}/api/v1/resumes/jobs/${jobId}/stream`, {
-		withCredentials: true
-	});
+export function subscribeToResumeGeneration(jobId: string, options: PollingOptions): () => void {
+	let intervalId: number | null = null;
+	let isActive = true;
+	const pollInterval = options.interval || 2000;
 
-	eventSource.onmessage = (event) => {
+	const poll = async () => {
+		if (!isActive) return;
+
 		try {
-			const data: ResumeGenerationEvent = JSON.parse(event.data);
-			options.onUpdate(data);
+			const jobStatus: ResumeJobStatus = await resumesApi.getJobStatus(jobId);
+			
+			const progress = calculateProgress(jobStatus.status);
+			const event: ResumeGenerationEvent = {
+				status: jobStatus.status,
+				progress,
+				message: getStatusMessage(jobStatus.status),
+				error: jobStatus.error
+			};
 
-			if (data.status === 'completed' && data.downloadUrl) {
-				options.onComplete?.(data.downloadUrl);
-				eventSource.close();
-			} else if (data.status === 'failed') {
-				options.onError?.(new Error(data.error || 'Resume generation failed'));
-				eventSource.close();
+			options.onUpdate(event);
+
+			if (jobStatus.status === 'completed') {
+				isActive = false;
+				if (intervalId) clearInterval(intervalId);
+				if (jobStatus.result?.resumeId) {
+					options.onComplete?.(jobStatus.result.resumeId);
+				}
+			} else if (jobStatus.status === 'failed') {
+				isActive = false;
+				if (intervalId) clearInterval(intervalId);
+				options.onError?.(new Error(jobStatus.error || 'Resume generation failed'));
+			} else if (jobStatus.status === 'cancelled') {
+				isActive = false;
+				if (intervalId) clearInterval(intervalId);
+				options.onError?.(new Error('Resume generation was cancelled'));
 			}
 		} catch (err) {
-			console.error('Failed to parse SSE message:', err);
+			console.error('Failed to poll job status:', err);
+			options.onError?.(err instanceof Error ? err : new Error('Failed to check job status'));
+			isActive = false;
+			if (intervalId) clearInterval(intervalId);
 		}
 	};
 
-	eventSource.onerror = (error) => {
-		console.error('SSE connection error:', error);
-		options.onError?.(new Error('Connection to server lost'));
-		eventSource.close();
-	};
+	// Start polling immediately
+	poll();
+	
+	// Then poll at intervals
+	intervalId = window.setInterval(poll, pollInterval);
 
 	// Return cleanup function
 	return () => {
-		eventSource.close();
+		isActive = false;
+		if (intervalId) {
+			clearInterval(intervalId);
+			intervalId = null;
+		}
 	};
+}
+
+function calculateProgress(status: string): number {
+	switch (status) {
+		case 'pending':
+			return 10;
+		case 'processing':
+			return 50;
+		case 'completed':
+			return 100;
+		case 'failed':
+		case 'cancelled':
+			return 0;
+		default:
+			return 0;
+	}
+}
+
+function getStatusMessage(status: string): string {
+	switch (status) {
+		case 'pending':
+			return 'Job queued, waiting to start...';
+		case 'processing':
+			return 'AI is generating your tailored resume...';
+		case 'completed':
+			return 'Resume generated successfully!';
+		case 'failed':
+			return 'Resume generation failed';
+		case 'cancelled':
+			return 'Resume generation was cancelled';
+		default:
+			return 'Processing...';
+	}
 }
 
 /**

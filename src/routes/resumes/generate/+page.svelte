@@ -1,28 +1,60 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { resumesApi } from '$lib/api/resumes';
+	import { jobApplicationsApi } from '$lib/api/job-applications';
+	import type { JobApplication } from '$lib/api/job-applications';
 	import ResumeGenerationProgress from '$lib/components/ResumeGenerationProgress.svelte';
 
-	let jobDescription = '';
-	let title = 'AI Generated Resume';
+	let jobApplicationId: string | null = null;
+	let jobApplication: JobApplication | null = null;
+	let jobApplications: JobApplication[] = [];
+	let isLoadingApps = true;
 	let isGenerating = false;
 	let generationJobId: string | null = null;
 	let error: string | null = null;
-	let downloadUrl: string | null = null;
+	let resumeId: string | null = null;
+	let language = 'en';
+
+	$: jobApplicationId = $page.url.searchParams.get('jobApplicationId');
+
+	onMount(async () => {
+		if (jobApplicationId) {
+			// Load specific job application
+			try {
+				jobApplication = await jobApplicationsApi.get(jobApplicationId);
+				language = jobApplication.language || 'en';
+			} catch (err) {
+				error = err instanceof Error ? err.message : 'Failed to load job application';
+			}
+		} else {
+			// Load all job applications for selection
+			try {
+				const response = await jobApplicationsApi.list({ limit: 100 });
+				jobApplications = response.applications || [];
+			} catch (err) {
+				error = err instanceof Error ? err.message : 'Failed to load job applications';
+			} finally {
+				isLoadingApps = false;
+			}
+		}
+	});
 
 	async function handleGenerate() {
-		if (!jobDescription.trim()) {
-			error = 'Please provide a job description';
+		if (!jobApplicationId) {
+			error = 'Please select a job application';
 			return;
 		}
 
 		isGenerating = true;
 		error = null;
-		downloadUrl = null;
+		resumeId = null;
 
 		try {
 			const response = await resumesApi.generate({
-				jobDescription: jobDescription.trim(),
-				title: title.trim() || 'AI Generated Resume'
+				jobApplicationId,
+				language
 			});
 
 			generationJobId = response.jobId;
@@ -32,8 +64,8 @@
 		}
 	}
 
-	function handleComplete(url: string) {
-		downloadUrl = url;
+	function handleComplete(generatedResumeId: string) {
+		resumeId = generatedResumeId;
 		isGenerating = false;
 	}
 
@@ -44,11 +76,16 @@
 	}
 
 	function startNew() {
+		goto('/resumes/generate');
 		generationJobId = null;
-		downloadUrl = null;
+		resumeId = null;
 		error = null;
-		jobDescription = '';
-		title = 'AI Generated Resume';
+		jobApplication = null;
+		jobApplicationId = null;
+	}
+
+	function selectJobApplication(id: string) {
+		goto(`/resumes/generate?jobApplicationId=${id}`);
 	}
 </script>
 
@@ -56,37 +93,75 @@
 	<div class="header">
 		<h1>Generate AI-Powered Resume</h1>
 		<p class="subtitle">
-			Paste a job description and we'll create a tailored resume using your profile data,
-			technical writings, projects, and work experience.
+			Select a job application and we'll create a tailored resume using AI to analyze the job requirements
+			and match them with your profile, projects, and experience.
 		</p>
 	</div>
 
-	{#if !generationJobId}
+	{#if !generationJobId && !jobApplicationId && !isLoadingApps}
+		<!-- Job Application Selection -->
+		<div class="selection-container">
+			<h2>Select a Job Application</h2>
+			{#if jobApplications.length === 0}
+				<div class="empty-state">
+					<p>No job applications found. Create a job application first to generate a resume.</p>
+					<a href="/job-applications/new" class="btn-primary">
+						Create Job Application
+					</a>
+				</div>
+			{:else}
+				<div class="applications-grid">
+					{#each jobApplications as app}
+						<button 
+							class="application-card" 
+							on:click={() => selectJobApplication(app.id)}
+						>
+							<div class="card-header">
+								<h3>{app.jobTitle}</h3>
+								<span class="company">{app.companyName}</span>
+							</div>
+							{#if app.location}
+								<p class="location">📍 {app.location}</p>
+							{/if}
+							<div class="card-footer">
+								<span class="status status-{app.status}">{app.status}</span>
+								{#if app.appliedAt}
+									<span class="date">Applied: {new Date(app.appliedAt).toLocaleDateString()}</span>
+								{/if}
+							</div>
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{:else if !generationJobId && jobApplication}
+		<!-- Generation Confirmation -->
 		<form on:submit|preventDefault={handleGenerate} class="generation-form">
-			<div class="form-group">
-				<label for="title">Resume Title</label>
-				<input
-					id="title"
-					type="text"
-					bind:value={title}
-					placeholder="e.g., Senior Backend Engineer Resume"
-					class="input"
-				/>
+			<div class="job-info">
+				<h2>Generate Resume For:</h2>
+				<div class="job-details">
+					<h3>{jobApplication.jobTitle}</h3>
+					<p class="company">{jobApplication.companyName}</p>
+					{#if jobApplication.location}
+						<p class="location">📍 {jobApplication.location}</p>
+					{/if}
+					{#if jobApplication.jobUrl}
+						<a href={jobApplication.jobUrl} target="_blank" rel="noopener noreferrer" class="job-link">
+							View Job Posting →
+						</a>
+					{/if}
+				</div>
 			</div>
 
 			<div class="form-group">
-				<label for="jobDescription">Job Description *</label>
-				<textarea
-					id="jobDescription"
-					bind:value={jobDescription}
-					placeholder="Paste the full job description here..."
-					rows="12"
-					class="textarea"
-					required
-				/>
-				<p class="hint">
-					Include the job title, requirements, responsibilities, and qualifications for best results.
-				</p>
+				<label for="language">Resume Language</label>
+				<select id="language" bind:value={language} class="select">
+					<option value="en">English</option>
+					<option value="es">Spanish</option>
+					<option value="fr">French</option>
+					<option value="de">German</option>
+					<option value="pt">Portuguese</option>
+				</select>
 			</div>
 
 			{#if error}
@@ -95,33 +170,44 @@
 				</div>
 			{/if}
 
-			<button type="submit" class="btn-generate" disabled={isGenerating}>
-				{isGenerating ? 'Starting...' : 'Generate Resume'}
-			</button>
+			<div class="button-group">
+				<button type="button" on:click={startNew} class="btn-secondary">
+					Choose Different Application
+				</button>
+				<button type="submit" class="btn-generate" disabled={isGenerating}>
+					{isGenerating ? 'Starting...' : 'Generate Resume with AI'}
+				</button>
+			</div>
 		</form>
-	{:else}
+	{:else if generationJobId}
+		<!-- Progress Tracking -->
 		<ResumeGenerationProgress
 			jobId={generationJobId}
 			onComplete={handleComplete}
 			onError={handleError}
 		/>
 
-		{#if downloadUrl}
+		{#if resumeId}
 			<div class="success-actions">
-				<a href={downloadUrl} download class="btn-download">
+				<a href="/api/v1/resumes/{resumeId}/download" download class="btn-download">
 					Download Resume
+				</a>
+				<a href="/resumes" class="btn-secondary">
+					View All Resumes
 				</a>
 				<button on:click={startNew} class="btn-secondary">
 					Generate Another
 				</button>
 			</div>
 		{/if}
+	{:else if isLoadingApps}
+		<div class="loading">Loading job applications...</div>
 	{/if}
 </div>
 
 <style>
 	.container {
-		max-width: 800px;
+		max-width: 900px;
 		margin: 0 auto;
 		padding: 32px 16px;
 	}
@@ -142,15 +228,172 @@
 		font-size: 16px;
 		color: #666;
 		line-height: 1.6;
-		max-width: 600px;
+		max-width: 700px;
 		margin: 0 auto;
 	}
 
+	.loading {
+		text-align: center;
+		padding: 48px;
+		color: #666;
+		font-size: 16px;
+	}
+
+	/* Job Application Selection */
+	.selection-container {
+		background: white;
+		border-radius: 12px;
+		padding: 32px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.selection-container h2 {
+		font-size: 24px;
+		font-weight: 600;
+		margin: 0 0 24px 0;
+		color: #1a1a1a;
+	}
+
+	.applications-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 16px;
+	}
+
+	.application-card {
+		background: white;
+		border: 2px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 20px;
+		text-align: left;
+		cursor: pointer;
+		transition: all 0.2s;
+		width: 100%;
+	}
+
+	.application-card:hover {
+		border-color: #0066cc;
+		box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
+		transform: translateY(-2px);
+	}
+
+	.card-header h3 {
+		font-size: 18px;
+		font-weight: 600;
+		margin: 0 0 8px 0;
+		color: #1a1a1a;
+	}
+
+	.company {
+		font-size: 14px;
+		color: #666;
+		font-weight: 500;
+	}
+
+	.location {
+		font-size: 14px;
+		color: #888;
+		margin: 8px 0;
+	}
+
+	.card-footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 16px;
+		padding-top: 16px;
+		border-top: 1px solid #f0f0f0;
+	}
+
+	.status {
+		padding: 4px 12px;
+		border-radius: 12px;
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+
+	.status-applied {
+		background: #e3f2fd;
+		color: #1976d2;
+	}
+
+	.status-interviewing {
+		background: #fff3e0;
+		color: #f57c00;
+	}
+
+	.status-offered {
+		background: #e8f5e9;
+		color: #388e3c;
+	}
+
+	.status-rejected {
+		background: #ffebee;
+		color: #d32f2f;
+	}
+
+	.date {
+		font-size: 12px;
+		color: #999;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 48px;
+	}
+
+	.empty-state p {
+		color: #666;
+		margin-bottom: 24px;
+	}
+
+	/* Generation Form */
 	.generation-form {
 		background: white;
 		border-radius: 12px;
 		padding: 32px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.job-info h2 {
+		font-size: 20px;
+		font-weight: 600;
+		margin: 0 0 16px 0;
+		color: #333;
+	}
+
+	.job-details {
+		background: #f8f9fa;
+		border-radius: 8px;
+		padding: 20px;
+		margin-bottom: 24px;
+	}
+
+	.job-details h3 {
+		font-size: 22px;
+		font-weight: 600;
+		margin: 0 0 8px 0;
+		color: #1a1a1a;
+	}
+
+	.job-details .company {
+		font-size: 16px;
+		color: #0066cc;
+		font-weight: 500;
+		margin-bottom: 8px;
+	}
+
+	.job-link {
+		display: inline-block;
+		color: #0066cc;
+		text-decoration: none;
+		font-size: 14px;
+		margin-top: 12px;
+	}
+
+	.job-link:hover {
+		text-decoration: underline;
 	}
 
 	.form-group {
@@ -165,34 +408,21 @@
 		margin-bottom: 8px;
 	}
 
-	.input,
-	.textarea {
+	.select {
 		width: 100%;
 		padding: 12px;
 		border: 1px solid #ddd;
 		border-radius: 6px;
 		font-size: 15px;
 		font-family: inherit;
-		transition: border-color 0.2s;
+		background: white;
+		cursor: pointer;
 	}
 
-	.input:focus,
-	.textarea:focus {
+	.select:focus {
 		outline: none;
 		border-color: #0066cc;
 		box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-	}
-
-	.textarea {
-		resize: vertical;
-		min-height: 200px;
-	}
-
-	.hint {
-		font-size: 13px;
-		color: #888;
-		margin-top: 6px;
-		margin-bottom: 0;
 	}
 
 	.error-alert {
@@ -205,8 +435,14 @@
 		margin-bottom: 20px;
 	}
 
+	.button-group {
+		display: flex;
+		gap: 12px;
+		justify-content: flex-end;
+	}
+
+	.btn-primary,
 	.btn-generate {
-		width: 100%;
 		padding: 14px 24px;
 		background: linear-gradient(135deg, #0066cc, #0052a3);
 		color: white;
@@ -216,8 +452,15 @@
 		font-weight: 600;
 		cursor: pointer;
 		transition: transform 0.2s, box-shadow 0.2s;
+		text-decoration: none;
+		display: inline-block;
 	}
 
+	.btn-generate {
+		flex: 1;
+	}
+
+	.btn-primary:hover,
 	.btn-generate:hover:not(:disabled) {
 		transform: translateY(-1px);
 		box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
@@ -233,6 +476,7 @@
 		gap: 16px;
 		justify-content: center;
 		margin-top: 32px;
+		flex-wrap: wrap;
 	}
 
 	.btn-download {
@@ -254,7 +498,7 @@
 	}
 
 	.btn-secondary {
-		padding: 14px 32px;
+		padding: 14px 24px;
 		background: white;
 		color: #333;
 		border: 2px solid #ddd;
@@ -263,6 +507,8 @@
 		font-weight: 600;
 		cursor: pointer;
 		transition: all 0.2s;
+		text-decoration: none;
+		display: inline-block;
 	}
 
 	.btn-secondary:hover {
