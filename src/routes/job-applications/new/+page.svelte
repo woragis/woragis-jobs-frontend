@@ -20,6 +20,24 @@
 	let error: string | null = null;
 	let tagInput = '';
 
+	// Paste functionality
+	async function pasteToField(field: keyof CreateJobApplicationRequest | 'tagInput') {
+		try {
+			const text = await navigator.clipboard.readText();
+			if (field === 'tagInput') {
+				tagInput = text.trim();
+			} else if (field === 'tags') {
+				// For tags, split by comma or newline and add all
+				const newTags = text.split(/[,\n]/).map(t => t.trim()).filter(t => t);
+				formData.tags = [...new Set([...(formData.tags || []), ...newTags])];
+			} else {
+				formData[field] = text.trim() as any;
+			}
+		} catch (err) {
+			console.error('Failed to paste:', err);
+		}
+	}
+
 	// Fetch CSRF token on page load
 	onMount(async () => {
 		try {
@@ -120,40 +138,70 @@
 			<label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">
 				Company Name <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="companyName"
-				type="text"
-				bind:value={formData.companyName}
-				required
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			/>
+			<div class="flex gap-2">
+				<input
+					id="companyName"
+					type="text"
+					bind:value={formData.companyName}
+					required
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+				<button
+					type="button"
+					onclick={() => pasteToField('companyName')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
+			</div>
 		</div>
 
 		<div>
 			<label for="jobTitle" class="block text-sm font-medium text-gray-700 mb-1">
 				Job Title <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="jobTitle"
-				type="text"
-				bind:value={formData.jobTitle}
-				required
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			/>
+			<div class="flex gap-2">
+				<input
+					id="jobTitle"
+					type="text"
+					bind:value={formData.jobTitle}
+					required
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+				<button
+					type="button"
+					onclick={() => pasteToField('jobTitle')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
+			</div>
 		</div>
 
 		<div>
 			<label for="jobUrl" class="block text-sm font-medium text-gray-700 mb-1">
 				Job URL <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="jobUrl"
-				type="url"
-				bind:value={formData.jobUrl}
-				required
-				placeholder="https://..."
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			/>
+			<div class="flex gap-2">
+				<input
+					id="jobUrl"
+					type="url"
+					bind:value={formData.jobUrl}
+					required
+					placeholder="https://..."
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+				<button
+					type="button"
+					onclick={() => pasteToField('jobUrl')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
+			</div>
 		</div>
 
 		<div>
@@ -175,13 +223,23 @@
 		<!-- Optional Fields -->
 		<div>
 			<label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-			<input
-				id="location"
-				type="text"
-				bind:value={formData.location}
-				placeholder="City, State/Country"
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			/>
+			<div class="flex gap-2">
+				<input
+					id="location"
+					type="text"
+					bind:value={formData.location}
+					placeholder="City, State/Country"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+				<button
+					type="button"
+					onclick={() => pasteToField('location')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
+			</div>
 		</div>
 
 		<div>
@@ -209,6 +267,14 @@
 					placeholder="Add a tag and press Enter"
 					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 				/>
+				<button
+					type="button"
+					onclick={() => pasteToField('tagInput')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
 				<button
 					type="button"
 					onclick={addTag}
@@ -249,13 +315,23 @@
 
 		<div>
 			<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-			<textarea
-				id="notes"
-				bind:value={formData.notes}
-				rows="4"
-				placeholder="Any additional notes about this application..."
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			></textarea>
+			<div class="flex gap-2">
+				<textarea
+					id="notes"
+					bind:value={formData.notes}
+					rows="4"
+					placeholder="Any additional notes about this application..."
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				></textarea>
+				<button
+					type="button"
+					onclick={() => pasteToField('notes')}
+					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors self-start"
+					title="Paste from clipboard"
+				>
+					📋
+				</button>
+			</div>
 		</div>
 
 		<!-- Submit Buttons -->
