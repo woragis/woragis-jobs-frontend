@@ -17,7 +17,7 @@ const getJobsApiUrl = (): string => {
 
 	// Remove trailing slash if present
 	const cleanUrl = baseUrl.replace(/\/$/, '');
-	
+
 	// Add /api/v1 prefix as all routes are under /api/v1
 	return `${cleanUrl}/api/v1`;
 };
@@ -34,7 +34,7 @@ const getAuthApiUrl = (): string => {
 
 	// Remove trailing slash if present
 	const cleanUrl = baseUrl.replace(/\/$/, '');
-	
+
 	// Add /api/v1 prefix as all routes are under /api/v1
 	return `${cleanUrl}/api/v1`;
 };
@@ -51,9 +51,33 @@ const getMlApiUrl = (): string => {
 
 	// Remove trailing slash if present
 	const cleanUrl = baseUrl.replace(/\/$/, '');
-	
+
 	// ML service uses /api/v1 prefix
 	return `${cleanUrl}/api/v1`;
+};
+
+const getResumeServiceUrl = (): string => {
+	const baseUrl = env.PUBLIC_RESUME_SERVICE_URL || 'http://localhost:8001';
+	if (import.meta.env.DEV) {
+		console.log('[Config] Using resume service URL:', baseUrl);
+	}
+	return baseUrl.replace(/\/$/, '');
+};
+
+const getAiServiceUrl = (): string => {
+	const baseUrl = env.PUBLIC_AI_SERVICE_URL || 'http://localhost:8000';
+	if (import.meta.env.DEV) {
+		console.log('[Config] Using AI service URL:', baseUrl);
+	}
+	return baseUrl.replace(/\/$/, '');
+};
+
+const getResumeWorkerUrl = (): string => {
+	const baseUrl = env.PUBLIC_RESUME_WORKER_URL || 'http://localhost:8002';
+	if (import.meta.env.DEV) {
+		console.log('[Config] Using resume worker URL:', baseUrl);
+	}
+	return baseUrl.replace(/\/$/, '');
 };
 
 // Use a getter to make it lazy-loaded (only evaluated when accessed, not at module load time)
@@ -67,6 +91,14 @@ export const config = {
 	},
 	get mlApiUrl() {
 		return getMlApiUrl();
+	},
+	get resumeServiceUrl() {
+		return getResumeServiceUrl();
+	},
+	get aiServiceUrl() {
+		return getAiServiceUrl();
+	},
+	get resumeWorkerUrl() {
+		return getResumeWorkerUrl();
 	}
 };
-

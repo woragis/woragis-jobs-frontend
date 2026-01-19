@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { jobApplicationsApi, type JobApplication, type ApplicationStatus } from '$lib/api/job-applications';
 	import { goto } from '$app/navigation';
+	import ServiceHealthMonitor from '$lib/components/ServiceHealthMonitor.svelte';
 
 	let applications: JobApplication[] = [];
 	let loading = true;
@@ -76,6 +77,8 @@
 		loadApplications();
 	});
 </script>
+
+<ServiceHealthMonitor />
 
 <div class="container mx-auto px-4 py-8">
 	<div class="mb-6 flex items-center justify-between">
