@@ -89,7 +89,7 @@
 			</nav>
 		</div>
 		<button
-			onclick={() => goto('/job-applications/new')}
+			on:click={() => goto('/job-applications/new')}
 			class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
 		>
 			+ New Application
@@ -103,7 +103,7 @@
 			<select
 				id="status-filter"
 				bind:value={statusFilter}
-				onchange={() => handleStatusChange(statusFilter)}
+				on:change={() => handleStatusChange(statusFilter)}
 				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 			>
 				<option value="">All Statuses</option>
@@ -118,7 +118,7 @@
 				id="website-filter"
 				type="text"
 				bind:value={websiteFilter}
-				oninput={() => handleWebsiteChange(websiteFilter)}
+				on:input={() => handleWebsiteChange(websiteFilter)}
 				placeholder="Filter by website..."
 				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 			/>
@@ -140,7 +140,7 @@
 		<div class="rounded-lg border border-gray-200 bg-white p-12 text-center">
 			<p class="text-gray-500">No job applications found.</p>
 			<button
-				onclick={() => goto('/job-applications/new')}
+				on:click={() => goto('/job-applications/new')}
 				class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
 			>
 				Create Your First Application
@@ -157,8 +157,8 @@
 						<div 
 							role="button"
 							tabindex="0"
-							onclick={() => goto(`/job-applications/${application.id}`)}
-							onkeydown={(e) => e.key === 'Enter' && goto(`/job-applications/${application.id}`)}
+							on:click={() => goto(`/job-applications/${application.id}`)}
+							on:keydown={(e) => e.key === 'Enter' && goto(`/job-applications/${application.id}`)}
 							class="flex-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
 						>
 							<div class="mb-2 flex items-center gap-3">
@@ -195,8 +195,8 @@
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
-							<button
-								onclick={(e) => {
+								<button
+								on:click={(e) => {
 									e.stopPropagation();
 									goto(`/resumes/generate?jobApplicationId=${application.id}`);
 								}}
@@ -217,28 +217,28 @@
 				<p class="text-sm text-gray-700">
 					Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} applications
 				</p>
-				<div class="flex gap-2">
-					<button
-						onclick={() => {
-							page = Math.max(1, page - 1);
-							loadApplications();
-						}}
-						disabled={page === 1}
-						class="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-					>
-						Previous
-					</button>
-					<button
-						onclick={() => {
-							page = page + 1;
-							loadApplications();
-						}}
-						disabled={page * limit >= total}
-						class="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-					>
-						Next
-					</button>
-				</div>
+						<div class="flex gap-2">
+							<button
+							on:click={() => {
+								page = Math.max(1, page - 1);
+								loadApplications();
+							}}
+							disabled={page === 1}
+							class="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+							>
+								Previous
+							</button>
+							<button
+							on:click={() => {
+								page = page + 1;
+								loadApplications();
+							}}
+							disabled={page * limit >= total}
+							class="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+							>
+								Next
+							</button>
+						</div>
 			</div>
 		{/if}
 	{/if}

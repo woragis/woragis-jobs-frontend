@@ -146,24 +146,12 @@ class ResumesApiClient {
 	 * Returns a job ID that can be used to track progress
 	 */
 	async generate(data: GenerateResumeRequest): Promise<GenerateResumeResponse> {
-		// Normalize language codes to full names when possible
-		const mapped = { ...data } as any;
-		if (data.language) {
-			const l = data.language.toLowerCase();
-			const map: Record<string, string> = {
-				en: 'english',
-				pt: 'portuguese',
-				es: 'spanish',
-				fr: 'french',
-				de: 'german'
-			};
-			if (map[l]) mapped.language = map[l];
-			else mapped.language = data.language; // assume already full name
-		}
+		// Send the language exactly as provided by the user (no enum coercion).
+		const payload = { ...data } as any;
 
 		const response = await this.client.post<ApiResponse<GenerateResumeResponse>>(
 			'/generate',
-			mapped
+			payload
 		);
 		return response.data.data;
 	}

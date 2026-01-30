@@ -199,6 +199,12 @@
 					</div>
 
 					<div class="resume-actions">
+						<a
+							href={`/resumes/${resume.id}`}
+							class="btn-small btn-info"
+						>
+							ℹ️ Details
+						</a>
 						<button
 							class="btn-small btn-primary"
 							on:click={() => handleSetAsMain(resume.id)}

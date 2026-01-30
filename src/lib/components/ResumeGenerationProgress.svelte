@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { subscribeToResumeGeneration, type ResumeGenerationEvent } from '$lib/api/resumes/sse';
+	import { config } from '$lib/config';
 
 	export let jobId: string;
 	export let onComplete: (resumeId: string) => void;
@@ -13,6 +14,56 @@
 	};
 
 	let unsubscribe: (() => void) | null = null;
+	let isRetrying = false;
+	let isCancelling = false;
+
+	async function handleRetry() {
+		isRetrying = true;
+		try {
+			const response = await fetch(`${config.jobsApiUrl}/resumes/jobs/${jobId}/retry`, {
+				method: 'POST',
+				credentials: 'include'
+			});
+			if (!response.ok) throw new Error('Failed to retry job');
+			
+			// Reset event and restart polling
+			event = { status: 'pending', progress: 10, message: 'Retrying resume generation...' };
+			unsubscribe?.();
+			unsubscribe = subscribeToResumeGeneration(jobId, {
+				onUpdate: (evt) => (event = evt),
+				onComplete: (resumeId) => {
+					event = { ...event, status: 'completed', progress: 100, message: 'Resume generated!' };
+					onComplete(resumeId);
+				},
+				onError: (error) => {
+					event = { ...event, status: 'failed', message: 'Generation failed', error: error.message };
+					onError(error.message);
+				}
+			});
+		} catch (err: any) {
+			onError(err.message || 'Failed to retry job');
+		} finally {
+			isRetrying = false;
+		}
+	}
+
+	async function handleCancel() {
+		isCancelling = true;
+		try {
+			const response = await fetch(`${config.jobsApiUrl}/resumes/jobs/${jobId}/cancel`, {
+				method: 'POST',
+				credentials: 'include'
+			});
+			if (!response.ok) throw new Error('Failed to cancel job');
+			
+			event = { ...event, status: 'cancelled', message: 'Job cancelled by user' };
+			unsubscribe?.();
+		} catch (err: any) {
+			onError(err.message || 'Failed to cancel job');
+		} finally {
+			isCancelling = false;
+		}
+	}
 
 	onMount(() => {
 		// Subscribe to polling updates
@@ -73,6 +124,25 @@
 	{#if event.error}
 		<div class="error-message">
 			{event.error}
+		</div>
+	{/if}
+
+	{#if event.status === 'failed' || event.status === 'cancelled'}
+		<div class="action-buttons">
+			<button 
+				on:click={handleRetry} 
+				disabled={isRetrying || isCancelling}
+				class="retry-btn"
+			>
+				{isRetrying ? '⟳ Retrying...' : '↻ Retry'}
+			</button>
+			<button 
+				on:click={handleCancel} 
+				disabled={isRetrying || isCancelling || event.status === 'cancelled'}
+				class="cancel-btn"
+			>
+				{isCancelling ? '⏹ Cancelling...' : '✕ Cancel'}
+			</button>
 		</div>
 	{/if}
 </div>
@@ -160,6 +230,60 @@
 		font-size: 14px;
 		color: #666;
 		font-weight: 500;
+	}
+
+	.error-message {
+		background: #f8d7da;
+		color: #721c24;
+		padding: 12px 16px;
+		border-radius: 8px;
+		border-left: 4px solid #dc3545;
+		font-size: 14px;
+		margin-top: 16px;
+	}
+
+	.action-buttons {
+		display: flex;
+		gap: 12px;
+		margin-top: 20px;
+		justify-content: flex-end;
+	}
+
+	.retry-btn,
+	.cancel-btn {
+		padding: 8px 16px;
+		border-radius: 6px;
+		border: none;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+
+	.retry-btn {
+		background: #28a745;
+		color: white;
+	}
+
+	.retry-btn:hover:not(:disabled) {
+		background: #218838;
+		box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+	}
+
+	.cancel-btn {
+		background: #6c757d;
+		color: white;
+	}
+
+	.cancel-btn:hover:not(:disabled) {
+		background: #5a6268;
+		box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+	}
+
+	.retry-btn:disabled,
+	.cancel-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	.error-message {

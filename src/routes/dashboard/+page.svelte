@@ -73,7 +73,7 @@
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
 		<button
-			onclick={loadDashboardData}
+			on:click={loadDashboardData}
 			class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 		>
 			Refresh
@@ -199,7 +199,7 @@
 						Create more job applications to get personalized recommendations.
 					</p>
 					<button
-						onclick={() => goto('/job-applications/new')}
+						on:click={() => goto('/job-applications/new')}
 						class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
 					>
 						Create Application
@@ -211,8 +211,8 @@
 						<div
 							role="button"
 							tabindex="0"
-							onclick={() => goto(`/job-applications/${rec.application_id}`)}
-							onkeydown={(e) => e.key === 'Enter' && goto(`/job-applications/${rec.application_id}`)}
+							on:click={() => goto(`/job-applications/${rec.application_id}`)}
+							on:keydown={(e) => e.key === 'Enter' && goto(`/job-applications/${rec.application_id}`)}
 							class="cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
 							<div class="flex items-start justify-between">

@@ -14,6 +14,8 @@
 	let resumes: Resume[] = [];
 	let selectedResumeId: string | null = null;
 	let savingResume = false;
+	let generatingCoverLetter = false;
+	let coverLetterResult: string | null = null;
 
 	const statusOptions: ApplicationStatus[] = [
 		'pending',
@@ -99,6 +101,36 @@
 		}
 	}
 
+	async function handleGenerateCoverLetter() {
+		if (!application) return;
+		
+		generatingCoverLetter = true;
+		error = null;
+		
+		try {
+			const response = await fetch(`${config.jobsApiUrl}/job-applications/${application.id}/generate-cover-letter`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			
+			if (!response.ok) {
+				const err = await response.json();
+				throw new Error(err.data?.message || 'Failed to generate cover letter');
+			}
+			
+			const result = await response.json();
+			coverLetterResult = result.data?.cover_letter || result.data || 'Cover letter generated';
+		} catch (err: any) {
+			error = err.message || 'Failed to generate cover letter';
+			console.error('Cover letter generation error:', err);
+		} finally {
+			generatingCoverLetter = false;
+		}
+	}
+
 	function getStatusColor(status: ApplicationStatus): string {
 		const colors: Record<ApplicationStatus, string> = {
 			pending: 'bg-yellow-100 text-yellow-800',
@@ -149,7 +181,7 @@
 <div class="container mx-auto max-w-4xl px-4 py-8">
 	<div class="mb-6">
 		<button
-			onclick={() => goto('/job-applications')}
+			on:click={() => goto('/job-applications')}
 			class="text-blue-600 hover:text-blue-700 mb-4"
 		>
 			← Back to Applications
@@ -184,26 +216,41 @@
 							<p class="text-lg text-gray-600">📍 {application.location}</p>
 						{/if}
 					</div>
-					<div class="flex gap-2">
-						<button
-							onclick={() => application && goto(`/job-applications/${application.id}/edit`)}
-							class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-						>
-							Edit
-						</button>
-						<button
-							onclick={() => (editing = !editing)}
-							class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-						>
-							{editing ? 'Cancel' : 'Edit Status'}
-						</button>
-						<button
-							onclick={deleteApplication}
-							class="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 transition-colors"
-						>
-							Delete
-						</button>
-					</div>
+				<div class="flex gap-2 flex-wrap">
+					<button
+						on:click={() => application && goto(`/resumes/generate?jobApplicationId=${application.id}`)}
+						class="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md whitespace-nowrap"
+						title="Generate AI-powered resume for this job"
+					>
+						✨ Generate Resume
+					</button>
+					<button
+						on:click={handleGenerateCoverLetter}
+						disabled={generatingCoverLetter}
+						class="rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-2 text-sm font-semibold text-white hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md whitespace-nowrap disabled:opacity-50"
+						title="Generate AI-powered cover letter for this job"
+					>
+						{generatingCoverLetter ? '⏳ Generating...' : '📝 Generate Cover Letter'}
+					</button>
+					<button
+						on:click={() => application && goto(`/job-applications/${application.id}/edit`)}
+						class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+					>
+						Edit
+					</button>
+					<button
+						on:click={() => (editing = !editing)}
+						class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+					>
+						{editing ? 'Cancel' : 'Edit Status'}
+					</button>
+					<button
+						on:click={deleteApplication}
+						class="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 transition-colors"
+					>
+						Delete
+					</button>
+				</div>
 				</div>
 
 				{#if editing}
@@ -217,7 +264,7 @@
 							{/each}
 						</select>
 						<button
-							onclick={updateStatus}
+							on:click={updateStatus}
 							class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors"
 						>
 							Update
@@ -400,7 +447,7 @@
 
 						{#if selectedResumeId && selectedResumeId !== application?.resumeId}
 							<button
-								onclick={updateResumeSelection}
+								on:click={updateResumeSelection}
 								disabled={savingResume}
 								class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
 							>
@@ -489,12 +536,43 @@
 				</div>
 			{/if}
 
-			<!-- Cover Letter -->
+			<!-- Cover Letter (Existing or Generated) -->
 			{#if application.coverLetter}
 				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 					<h2 class="mb-4 text-xl font-semibold text-gray-900">Cover Letter</h2>
 					<div class="prose max-w-none text-gray-700">
 						<p class="whitespace-pre-wrap">{application.coverLetter}</p>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Generated Cover Letter Result -->
+			{#if coverLetterResult}
+				<div class="rounded-lg border border-green-200 bg-green-50 p-6 shadow-sm">
+					<div class="flex items-start justify-between mb-4">
+						<h2 class="text-xl font-semibold text-green-900">Generated Cover Letter</h2>
+						<button
+							on:click={() => (coverLetterResult = null)}
+							class="text-green-600 hover:text-green-700"
+							title="Close"
+						>
+							✕
+						</button>
+					</div>
+					<div class="prose max-w-none text-gray-700 bg-white p-4 rounded border border-green-200">
+						<p class="whitespace-pre-wrap">{coverLetterResult}</p>
+					</div>
+					<div class="mt-4 flex gap-2">
+						<button
+							on:click={() => {
+								// Copy to clipboard
+								navigator.clipboard.writeText(coverLetterResult || '');
+								alert('Cover letter copied to clipboard');
+							}}
+							class="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 transition-colors"
+						>
+							📋 Copy to Clipboard
+						</button>
 					</div>
 				</div>
 			{/if}

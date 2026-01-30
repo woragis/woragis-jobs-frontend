@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { resumesApi } from '$lib/api/resumes';
+	import { config } from '$lib/config';
 	import { jobApplicationsApi } from '$lib/api/job-applications';
 	import type { JobApplication } from '$lib/api/job-applications';
 	import ResumeGenerationProgress from '$lib/components/ResumeGenerationProgress.svelte';
@@ -26,7 +27,8 @@
 			// Load specific job application
 			try {
 				jobApplication = await jobApplicationsApi.get(jobApplicationId);
-				language = jobApplication.language || 'en';
+				// Preserve whatever language was stored (freeform). Fallback to 'english'.
+				language = jobApplication.language || 'english';
 			} catch (err) {
 				error = err instanceof Error ? err.message : 'Failed to load job application';
 			}
@@ -165,13 +167,18 @@
 
 			<div class="form-group">
 				<label for="language">Resume Language</label>
-				<select id="language" bind:value={language} class="select">
-					<option value="english">English</option>
-					<option value="spanish">Spanish</option>
-					<option value="french">French</option>
-					<option value="german">German</option>
-					<option value="portuguese">Portuguese</option>
-				</select>
+				<input id="language" list="language-suggestions" bind:value={language} class="input" placeholder="e.g. English, Portuguese, Chinese (Simplified)" />
+				<datalist id="language-suggestions">
+					<option value="English"></option>
+					<option value="Portuguese"></option>
+					<option value="Spanish"></option>
+					<option value="French"></option>
+					<option value="German"></option>
+					<option value="en"></option>
+					<option value="pt"></option>
+					<option value="es"></option>
+				</datalist>
+				<p class="hint">You can type any language (e.g. "english", "pt-BR", or "日本語"). Suggestions are provided.</p>
 			</div>
 
 			{#if !jobApplicationId}
@@ -215,7 +222,7 @@
 
 		{#if resumeId}
 			<div class="success-actions">
-				<a href={`/api/v1/resumes/${resumeId}/download`} download class="btn-download">
+				<a href={`${config.jobsApiUrl}/resumes/${resumeId}/download`} download class="btn-download">
 					Download Resume
 				</a>
 				<a href="/resumes" class="btn-secondary">
