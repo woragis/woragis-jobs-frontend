@@ -51,8 +51,9 @@ export interface ApiResponse<T> {
 }
 
 export interface GenerateResumeRequest {
-	jobApplicationId: string;
-	language?: string;
+	jobApplicationId?: string;
+	jobDescription?: string;
+	language?: string; // full language name (e.g., "english") or 2-letter code
 }
 
 export interface GenerateResumeResponse {

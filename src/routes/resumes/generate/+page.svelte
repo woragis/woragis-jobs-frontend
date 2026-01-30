@@ -10,6 +10,8 @@
 	let jobApplicationId: string | null = null;
 	let jobApplication: JobApplication | null = null;
 	let jobApplications: JobApplication[] = [];
+	let customMode = false;
+	let jobDescription = '';
 	let isLoadingApps = true;
 	let isGenerating = false;
 	let generationJobId: string | null = null;
@@ -42,8 +44,9 @@
 	});
 
 	async function handleGenerate() {
-		if (!jobApplicationId) {
-			error = 'Please select a job application';
+		// allow either jobApplicationId or jobDescription
+		if (!jobApplicationId && jobDescription.trim() === '') {
+			error = 'Please select a job application or provide a job description';
 			return;
 		}
 
@@ -52,10 +55,11 @@
 		resumeId = null;
 
 		try {
-			const response = await resumesApi.generate({
-				jobApplicationId,
-				language
-			});
+			const payload: any = { language };
+			if (jobApplicationId) payload.jobApplicationId = jobApplicationId;
+			if (!jobApplicationId && jobDescription.trim() !== '') payload.jobDescription = jobDescription.trim();
+
+			const response = await resumesApi.generate(payload);
 
 			generationJobId = response.jobId;
 		} catch (err) {
@@ -164,6 +168,14 @@
 				</select>
 			</div>
 
+			{#if !jobApplicationId}
+				<div class="form-group">
+					<label for="jobDescription">Job Description (optional)</label>
+					<textarea id="jobDescription" bind:value={jobDescription} rows="6" class="textarea" placeholder="Paste the job description or a short summary here"></textarea>
+					<p class="hint">If you don't select a job application, provide a job description to make the resume tailored.</p>
+				</div>
+			{/if}
+
 			{#if error}
 				<div class="error-alert">
 					{error}
@@ -189,7 +201,7 @@
 
 		{#if resumeId}
 			<div class="success-actions">
-				<a href="/api/v1/resumes/{resumeId}/download" download class="btn-download">
+				<a href={`/api/v1/resumes/${resumeId}/download`} download class="btn-download">
 					Download Resume
 				</a>
 				<a href="/resumes" class="btn-secondary">

@@ -146,7 +146,25 @@ class ResumesApiClient {
 	 * Returns a job ID that can be used to track progress
 	 */
 	async generate(data: GenerateResumeRequest): Promise<GenerateResumeResponse> {
-		const response = await this.client.post<ApiResponse<GenerateResumeResponse>>('/generate', data);
+		// Normalize language codes to full names when possible
+		const mapped = { ...data } as any;
+		if (data.language) {
+			const l = data.language.toLowerCase();
+			const map: Record<string, string> = {
+				en: 'english',
+				pt: 'portuguese',
+				es: 'spanish',
+				fr: 'french',
+				de: 'german'
+			};
+			if (map[l]) mapped.language = map[l];
+			else mapped.language = data.language; // assume already full name
+		}
+
+		const response = await this.client.post<ApiResponse<GenerateResumeResponse>>(
+			'/generate',
+			mapped
+		);
 		return response.data.data;
 	}
 
@@ -154,7 +172,9 @@ class ResumesApiClient {
 	 * Get the status of a resume generation job
 	 */
 	async getJobStatus(jobId: string): Promise<import('./types').ResumeJobStatus> {
-		const response = await this.client.get<ApiResponse<import('./types').ResumeJobStatus>>(`/jobs/${jobId}`);
+		const response = await this.client.get<ApiResponse<import('./types').ResumeJobStatus>>(
+			`/jobs/${jobId}`
+		);
 		return response.data.data;
 	}
 }
