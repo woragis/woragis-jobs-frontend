@@ -208,6 +208,7 @@
 			<label for="website" class="block text-sm font-medium text-gray-700 mb-1">
 				Website <span class="text-red-500">*</span>
 			</label>
+			<p class="text-xs text-gray-500 mb-2">Where you found or will apply for this job.</p>
 			<select
 				id="website"
 				bind:value={formData.website}
@@ -244,6 +245,7 @@
 
 		<div>
 			<label for="interestLevel" class="block text-sm font-medium text-gray-700 mb-1">Interest Level</label>
+			<p class="text-xs text-gray-500 mb-2">How interested are you in this opportunity? Helps prioritize your applications.</p>
 			<select
 				id="interestLevel"
 				bind:value={formData.interestLevel}
@@ -258,6 +260,7 @@
 
 		<div>
 			<label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+			<p class="text-xs text-gray-500 mb-2">Add custom labels like "remote", "startup", or "FAANG" to organize applications.</p>
 			<div class="flex gap-2 mb-2">
 				<input
 					id="tags"
@@ -305,6 +308,7 @@
 
 		<div>
 			<label for="followUpDate" class="block text-sm font-medium text-gray-700 mb-1">Follow-up Date</label>
+			<p class="text-xs text-gray-500 mb-2">Set a reminder date to follow up if you haven't heard back.</p>
 			<input
 				id="followUpDate"
 				type="date"

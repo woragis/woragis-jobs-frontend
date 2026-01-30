@@ -307,6 +307,7 @@
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
 						<label for="source" class="block text-sm font-medium text-gray-700 mb-1">Source</label>
+						<p class="text-xs text-gray-500 mb-2">Where you found this job (company website, referral, job board, etc.)</p>
 						<input
 							id="source"
 							type="text"
@@ -317,6 +318,7 @@
 					</div>
 					<div>
 						<label for="applicationMethod" class="block text-sm font-medium text-gray-700 mb-1">Application Method</label>
+						<p class="text-xs text-gray-500 mb-2">How you applied (online form, email, recruiter, etc.)</p>
 						<input
 							id="applicationMethod"
 							type="text"
@@ -327,6 +329,7 @@
 					</div>
 					<div>
 						<label for="language" class="block text-sm font-medium text-gray-700 mb-1">Language</label>
+						<p class="text-xs text-gray-500 mb-2">Primary language for the position or application</p>
 						<input
 							id="language"
 							type="text"
