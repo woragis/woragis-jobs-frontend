@@ -177,6 +177,11 @@
 								<span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
 									{application.website}
 								</span>
+								{#if application.language}
+									<span class="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
+										🌐 {application.language}
+									</span>
+								{/if}
 								{#if application.interestLevel}
 									<span class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">
 										Interest: {application.interestLevel}

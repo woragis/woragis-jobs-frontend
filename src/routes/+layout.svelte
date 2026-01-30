@@ -7,6 +7,7 @@
 	import { authApi } from '$lib/api/auth';
 
 	let { children } = $props();
+	let mobileMenuOpen = false;
 
 	// Initialize auth store on app load
 	onMount(() => {
@@ -28,6 +29,15 @@
 			await goto('/auth/login');
 		}
 	}
+
+	function closeMobileMenu() {
+		mobileMenuOpen = false;
+	}
+
+	async function handleLogoutMobile() {
+		closeMobileMenu();
+		await handleLogout();
+	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -38,43 +48,108 @@
 			<div class="flex h-16 items-center justify-between">
 				<div class="flex items-center gap-6">
 					<a href="/job-applications" class="text-xl font-bold text-gray-900 hover:text-blue-600">
-						Job Applications
+						Job Manager
 					</a>
-					<div class="flex gap-4">
-						<a href="/dashboard" class="text-sm text-gray-700 hover:text-blue-600">
-							Dashboard
-						</a>
-						<a href="/job-applications" class="text-sm text-gray-700 hover:text-blue-600">
+					<!-- Desktop Navigation -->
+					<div class="hidden md:flex gap-4">
+						<a href="/job-applications" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Applications
 						</a>
-						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600">
+						<a href="/dashboard" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
+							Dashboard
+						</a>
+						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Resumes
 						</a>
-						<a href="/resumes/generate" class="text-sm text-blue-600 font-semibold hover:text-blue-700">
+						<a href="/resumes/generate" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors">
 							✨ Generate Resume
 						</a>
-						<a href="/job-applications/new" class="text-sm text-gray-700 hover:text-blue-600">
-							New Application
-						</a>
-						<a href="/auth/profile" class="text-sm text-gray-700 hover:text-blue-600">
+						<a href="/auth/profile" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Profile
 						</a>
 					</div>
 				</div>
-				<div class="flex items-center gap-4">
+
+				<!-- Desktop User Section -->
+				<div class="hidden md:flex items-center gap-4">
 					{#if $currentUser}
 						<span class="text-sm text-gray-600">
 							{$currentUser.first_name} {$currentUser.last_name}
 						</span>
 					{/if}
 					<button
-						onclick={handleLogout}
+						on:click={handleLogout}
 						class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 					>
 						Sign Out
 					</button>
 				</div>
+
+				<!-- Mobile Hamburger Button -->
+				<button
+					on:click={() => (mobileMenuOpen = !mobileMenuOpen)}
+					class="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+					title="Toggle menu"
+				>
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+							d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+					</svg>
+				</button>
 			</div>
+
+			<!-- Mobile Navigation Menu -->
+			{#if mobileMenuOpen}
+				<div class="md:hidden border-t border-gray-200 bg-white py-4 space-y-2">
+					<a 
+						href="/job-applications" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						Applications
+					</a>
+					<a 
+						href="/dashboard" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						Dashboard
+					</a>
+					<a 
+						href="/resumes" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						Resumes
+					</a>
+					<a 
+						href="/resumes/generate" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-blue-600 font-semibold hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
+					>
+						✨ Generate Resume
+					</a>
+					<a 
+						href="/auth/profile" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						Profile
+					</a>
+					<hr class="my-2" />
+					{#if $currentUser}
+						<div class="px-4 py-2 text-sm text-gray-600">
+							{$currentUser.first_name} {$currentUser.last_name}
+						</div>
+					{/if}
+					<button
+						on:click={handleLogoutMobile}
+						class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+					>
+						Sign Out
+					</button>
+				</div>
+			{/if}
 		</div>
 	</nav>
 {/if}

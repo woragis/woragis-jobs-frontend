@@ -87,6 +87,8 @@
 
 	async function handleSetAsMain() {
 		if (!resume) return;
+		if (!confirm('Set this resume as your main resume? This will be used by default for new applications.')) return;
+		
 		try {
 			resume = await resumesApi.setAsMain(resume.id);
 		} catch (err: any) {
@@ -96,6 +98,8 @@
 
 	async function handleSetAsFeatured() {
 		if (!resume) return;
+		if (!confirm('Mark this resume as featured? It will be highlighted in your resume list.')) return;
+		
 		try {
 			resume = await resumesApi.setAsFeatured(resume.id);
 		} catch (err: any) {
