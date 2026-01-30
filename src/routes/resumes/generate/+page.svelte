@@ -17,7 +17,7 @@
 	let generationJobId: string | null = null;
 	let error: string | null = null;
 	let resumeId: string | null = null;
-	let language = 'en';
+	let language = 'english';
 
 	$: jobApplicationId = $page.url.searchParams.get('jobApplicationId');
 
@@ -46,7 +46,13 @@
 	async function handleGenerate() {
 		// allow either jobApplicationId or jobDescription
 		if (!jobApplicationId && jobDescription.trim() === '') {
-			error = 'Please select a job application or provide a job description';
+			error = 'Please select a job application or provide a job description / instructions';
+			return;
+		}
+
+		// enforce a minimum length for custom instructions to avoid empty/too-short prompts
+		if (!jobApplicationId && jobDescription.trim().length < 10) {
+			error = 'Please provide a more detailed job description or instructions (at least 10 characters)';
 			return;
 		}
 
@@ -160,19 +166,27 @@
 			<div class="form-group">
 				<label for="language">Resume Language</label>
 				<select id="language" bind:value={language} class="select">
-					<option value="en">English</option>
-					<option value="es">Spanish</option>
-					<option value="fr">French</option>
-					<option value="de">German</option>
-					<option value="pt">Portuguese</option>
+					<option value="english">English</option>
+					<option value="spanish">Spanish</option>
+					<option value="french">French</option>
+					<option value="german">German</option>
+					<option value="portuguese">Portuguese</option>
 				</select>
 			</div>
 
 			{#if !jobApplicationId}
 				<div class="form-group">
-					<label for="jobDescription">Job Description (optional)</label>
-					<textarea id="jobDescription" bind:value={jobDescription} rows="6" class="textarea" placeholder="Paste the job description or a short summary here"></textarea>
-					<p class="hint">If you don't select a job application, provide a job description to make the resume tailored.</p>
+					<label for="jobDescription">Job Description / Instructions (optional)</label>
+					<textarea id="jobDescription" bind:value={jobDescription} rows="6" class="textarea" placeholder="For example: 'Startup company, highlight GraphQL projects and leadership experience; emphasize team management and API design.'"></textarea>
+					<p class="hint">Provide job description or specific instructions to tailor the resume (e.g., highlight GraphQL projects, leadership, or company type).</p>
+					<div class="examples">
+						<strong>Examples:</strong>
+						<ul>
+							<li>"Startup company — emphasize product impact and cross-functional work."</li>
+							<li>"GraphQL & API-focused role — highlight projects using GraphQL and backend APIs."</li>
+							<li>"Manager role — state that I managed teams and list leadership responsibilities."</li>
+						</ul>
+					</div>
 				</div>
 			{/if}
 
