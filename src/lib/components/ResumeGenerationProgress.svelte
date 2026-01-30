@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { subscribeToResumeGeneration, type ResumeGenerationEvent } from '$lib/api/resumes/sse';
-	import { config } from '$lib/config';
+	import { resumesApi } from '$lib/api/resumes/client';
 
 	export let jobId: string;
 	export let onComplete: (resumeId: string) => void;
@@ -20,11 +20,7 @@
 	async function handleRetry() {
 		isRetrying = true;
 		try {
-			const response = await fetch(`${config.jobsApiUrl}/resumes/jobs/${jobId}/retry`, {
-				method: 'POST',
-				credentials: 'include'
-			});
-			if (!response.ok) throw new Error('Failed to retry job');
+			await resumesApi.retryJob(jobId);
 			
 			// Reset event and restart polling
 			event = { status: 'pending', progress: 10, message: 'Retrying resume generation...' };
@@ -50,11 +46,7 @@
 	async function handleCancel() {
 		isCancelling = true;
 		try {
-			const response = await fetch(`${config.jobsApiUrl}/resumes/jobs/${jobId}/cancel`, {
-				method: 'POST',
-				credentials: 'include'
-			});
-			if (!response.ok) throw new Error('Failed to cancel job');
+			await resumesApi.cancelJob(jobId);
 			
 			event = { ...event, status: 'cancelled', message: 'Job cancelled by user' };
 			unsubscribe?.();

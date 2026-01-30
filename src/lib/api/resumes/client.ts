@@ -165,6 +165,20 @@ class ResumesApiClient {
 		);
 		return response.data.data;
 	}
+
+	/**
+	 * Retry a failed resume generation job
+	 */
+	async retryJob(jobId: string): Promise<void> {
+		await this.client.post<ApiResponse<null>>(`/jobs/${jobId}/retry`, {});
+	}
+
+	/**
+	 * Cancel a resume generation job
+	 */
+	async cancelJob(jobId: string): Promise<void> {
+		await this.client.post<ApiResponse<null>>(`/jobs/${jobId}/cancel`, {});
+	}
 }
 
 // Export singleton instance
