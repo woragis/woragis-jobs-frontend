@@ -125,13 +125,13 @@
 	function getOutcomeBadgeClass(outcome: string): string {
 		switch (outcome) {
 			case 'passed':
-				return 'badge-success';
+				return 'bg-green-100 text-green-700';
 			case 'failed':
-				return 'badge-danger';
+				return 'bg-red-100 text-red-700';
 			case 'cancelled':
-				return 'badge-warning';
+				return 'bg-yellow-100 text-yellow-700';
 			default:
-				return 'badge-info';
+				return 'bg-blue-100 text-blue-700';
 		}
 	}
 
@@ -140,173 +140,240 @@
 	}
 </script>
 
-<div class="interview-stages-container">
-	<div class="header">
-		{#if jobApplication}
-			<div class="breadcrumb">
-				<a href="/job-applications">Job Applications</a>
-				<span>/</span>
-				<span>{jobApplication.companyName} - {jobApplication.jobTitle}</span>
+<div class="container mx-auto max-w-4xl px-4 py-8">
+	<!-- Header -->
+	<div class="mb-8">
+		<nav class="mb-4 flex items-center gap-2 text-sm text-gray-600">
+			<a href="/job-applications" class="text-blue-600 hover:text-blue-700 transition-colors">
+				Job Applications
+			</a>
+			<span>/</span>
+			{#if jobApplication}
+				<span class="text-gray-900">{jobApplication.companyName} - {jobApplication.jobTitle}</span>
+			{/if}
+		</nav>
+		
+		<div class="flex items-center justify-between">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900">Interview Stages</h1>
+				{#if jobApplication}
+					<p class="mt-2 text-lg text-gray-600">{jobApplication.companyName} — {jobApplication.jobTitle}</p>
+				{/if}
 			</div>
-			<h1>Interview Stages</h1>
-			<p class="subtitle">{jobApplication.companyName} - {jobApplication.jobTitle}</p>
-		{/if}
+			<button
+				on:click={() => (showCreateForm = !showCreateForm)}
+				class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors font-medium"
+			>
+				{showCreateForm ? '✕ Cancel' : '+ Add Stage'}
+			</button>
+		</div>
 	</div>
 
+	<!-- Error Message -->
 	{#if error}
-		<div class="alert alert-error">
+		<div class="mb-6 rounded-lg bg-red-50 p-4 text-red-800 border border-red-200">
 			<p>{error}</p>
 		</div>
 	{/if}
 
+	<!-- Loading State -->
 	{#if isLoading}
-		<div class="loading">Loading interview stages...</div>
-	{:else}
-		<div class="create-stage-btn">
-			<button
-				on:click={() => (showCreateForm = !showCreateForm)}
-				class="btn btn-primary"
-			>
-				{showCreateForm ? 'Cancel' : 'Add Interview Stage'}
-			</button>
+		<div class="text-center py-12">
+			<div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+			<p class="mt-4 text-gray-600">Loading interview stages...</p>
 		</div>
-
+	{:else}
+		<!-- Create Form -->
 		{#if showCreateForm}
-			<div class="create-form">
-				<h2>New Interview Stage</h2>
+			<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+				<h2 class="mb-6 text-xl font-semibold text-gray-900">New Interview Stage</h2>
 
-				<div class="form-group">
-					<label for="stage-type">Stage Type</label>
-					<select id="stage-type" bind:value={selectedStageType} disabled={isCreating}>
-						{#each stageTypeOptions as type}
-							<option value={type}>{getStageTypeDisplay(type)}</option>
-						{/each}
-					</select>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-6">
+					<div>
+						<label for="stage-type" class="block text-sm font-medium text-gray-700 mb-2">
+							Stage Type <span class="text-red-500">*</span>
+						</label>
+						<p class="text-xs text-gray-500 mb-2">What type of interview is this?</p>
+						<select 
+							id="stage-type" 
+							bind:value={selectedStageType} 
+							disabled={isCreating}
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						>
+							{#each stageTypeOptions as type}
+								<option value={type}>{getStageTypeDisplay(type)}</option>
+							{/each}
+						</select>
+					</div>
+
+					<div>
+						<label for="scheduled-date" class="block text-sm font-medium text-gray-700 mb-2">
+							Scheduled Date & Time
+						</label>
+						<p class="text-xs text-gray-500 mb-2">When is the interview scheduled?</p>
+						<input
+							id="scheduled-date"
+							type="datetime-local"
+							bind:value={scheduledDate}
+							disabled={isCreating}
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						/>
+					</div>
+
+					<div>
+						<label for="interviewer-name" class="block text-sm font-medium text-gray-700 mb-2">
+							Interviewer Name
+						</label>
+						<p class="text-xs text-gray-500 mb-2">Name of the person conducting the interview</p>
+						<input
+							id="interviewer-name"
+							type="text"
+							placeholder="e.g., John Smith"
+							bind:value={interviewerName}
+							disabled={isCreating}
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						/>
+					</div>
+
+					<div>
+						<label for="interviewer-email" class="block text-sm font-medium text-gray-700 mb-2">
+							Interviewer Email
+						</label>
+						<p class="text-xs text-gray-500 mb-2">Email for follow-up communication</p>
+						<input
+							id="interviewer-email"
+							type="email"
+							placeholder="e.g., john@company.com"
+							bind:value={interviewerEmail}
+							disabled={isCreating}
+							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						/>
+					</div>
 				</div>
 
-				<div class="form-group">
-					<label for="scheduled-date">Scheduled Date & Time</label>
-					<input
-						id="scheduled-date"
-						type="datetime-local"
-						bind:value={scheduledDate}
-						disabled={isCreating}
-					/>
-				</div>
-
-				<div class="form-group">
-					<label for="interviewer-name">Interviewer Name</label>
-					<input
-						id="interviewer-name"
-						type="text"
-						placeholder="e.g., John Smith"
-						bind:value={interviewerName}
-						disabled={isCreating}
-					/>
-				</div>
-
-				<div class="form-group">
-					<label for="interviewer-email">Interviewer Email</label>
-					<input
-						id="interviewer-email"
-						type="email"
-						placeholder="e.g., john@company.com"
-						bind:value={interviewerEmail}
-						disabled={isCreating}
-					/>
-				</div>
-
-				<div class="form-group">
-					<label for="location">Location</label>
+				<div class="mb-6">
+					<label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+						Location
+					</label>
+					<p class="text-xs text-gray-500 mb-2">Office location, address, or video call platform</p>
 					<input
 						id="location"
 						type="text"
 						placeholder="e.g., NYC Office, Video Call, or 123 Main St"
 						bind:value={location}
 						disabled={isCreating}
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 					/>
 				</div>
 
-				<div class="form-group">
-					<label for="notes">Notes</label>
+				<div class="mb-6">
+					<label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+						Notes
+					</label>
+					<p class="text-xs text-gray-500 mb-2">Preparation tips, topics to review, or other reminders</p>
 					<textarea
 						id="notes"
 						placeholder="Any additional notes about this stage..."
 						bind:value={notes}
 						disabled={isCreating}
 						rows="3"
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 					></textarea>
 				</div>
 
-				<div class="form-actions">
-					<button on:click={handleCreateStage} disabled={isCreating} class="btn btn-primary">
-						{isCreating ? 'Creating...' : 'Create Stage'}
+				<div class="flex gap-3">
+					<button 
+						on:click={handleCreateStage} 
+						disabled={isCreating} 
+						class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isCreating ? '⏳ Creating...' : 'Create Stage'}
 					</button>
-					<button on:click={resetForm} disabled={isCreating} class="btn btn-secondary">
+					<button 
+						on:click={resetForm} 
+						disabled={isCreating} 
+						class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+					>
 						Cancel
 					</button>
 				</div>
 			</div>
 		{/if}
 
+		<!-- Stages List -->
 		{#if stages.length === 0}
-			<div class="empty-state">
-				<p>No interview stages yet.</p>
-				<p>Click "Add Interview Stage" to track your interview process.</p>
+			<div class="rounded-lg border border-gray-200 bg-white p-12 text-center">
+				<p class="text-lg text-gray-600">No interview stages recorded yet.</p>
+				<p class="mt-2 text-gray-500">Click "Add Stage" to start tracking your interview process.</p>
 			</div>
 		{:else}
-			<div class="stages-timeline">
-				<h2>Interview Timeline</h2>
+			<div class="space-y-4">
+				<h2 class="text-xl font-semibold text-gray-900 mb-4">Interview Timeline</h2>
 				{#each stages as stage, index (stage.id)}
-					<div class="stage-card">
-						<div class="stage-header">
-							<div class="stage-number">{index + 1}</div>
-							<div class="stage-info">
-								<h3>{getStageTypeDisplay(stage.stageType)}</h3>
-								<p class="date">
-									{formatDate(stage.scheduledDate)}
-									{#if stage.scheduledDate}
-										at {formatTime(stage.scheduledDate)}
+					<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+						<!-- Stage Header -->
+						<div class="mb-4 pb-4 border-b border-gray-100">
+							<div class="flex items-start justify-between gap-4">
+								<div class="flex items-start gap-3 flex-1">
+									<div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm flex-shrink-0">
+										{index + 1}
+									</div>
+									<div>
+										<h3 class="text-lg font-semibold text-gray-900">{getStageTypeDisplay(stage.stageType)}</h3>
+										<p class="mt-1 text-sm text-gray-600">
+											{#if stage.scheduledDate}
+												📅 {formatDate(stage.scheduledDate)} at {formatTime(stage.scheduledDate)}
+											{:else}
+												<span class="text-gray-500 italic">No date scheduled</span>
+											{/if}
+										</p>
+									</div>
+								</div>
+								<div class="flex-shrink-0">
+									<span class="inline-flex rounded-full px-3 py-1 text-sm font-medium {getOutcomeBadgeClass(stage.outcome)}">
+										{stage.outcome.charAt(0).toUpperCase() + stage.outcome.slice(1)}
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Stage Details -->
+						<div class="mb-4 space-y-2 text-sm">
+							{#if stage.interviewerName}
+								<p class="text-gray-700">
+									<span class="font-medium">👤 Interviewer:</span> {stage.interviewerName}
+									{#if stage.interviewerEmail}
+										(<a href="mailto:{stage.interviewerEmail}" class="text-blue-600 hover:text-blue-700 underline">{stage.interviewerEmail}</a>)
 									{/if}
 								</p>
-							</div>
-							<div class="stage-status">
-								<span class="badge {getOutcomeBadgeClass(stage.outcome)}">
-									{stage.outcome.charAt(0).toUpperCase() + stage.outcome.slice(1)}
-								</span>
-							</div>
-						</div>
-
-						<div class="stage-details">
-							{#if stage.interviewerName}
-								<p><strong>Interviewer:</strong> {stage.interviewerName}</p>
-							{/if}
-							{#if stage.interviewerEmail}
-								<p><strong>Email:</strong> <a href="mailto:{stage.interviewerEmail}">{stage.interviewerEmail}</a></p>
 							{/if}
 							{#if stage.location}
-								<p><strong>Location:</strong> {stage.location}</p>
+								<p class="text-gray-700"><span class="font-medium">📍 Location:</span> {stage.location}</p>
 							{/if}
 							{#if stage.notes}
-								<p><strong>Notes:</strong> {stage.notes}</p>
+								<p class="text-gray-700"><span class="font-medium">📝 Notes:</span> {stage.notes}</p>
 							{/if}
 							{#if stage.feedback}
-								<p><strong>Feedback:</strong> {stage.feedback}</p>
+								<p class="text-gray-700"><span class="font-medium">💬 Feedback:</span> {stage.feedback}</p>
 							{/if}
 							{#if stage.completedDate}
-								<p><strong>Completed:</strong> {formatDate(stage.completedDate)}</p>
+								<p class="text-gray-600 text-xs"><span class="font-medium">✓ Completed:</span> {formatDate(stage.completedDate)}</p>
 							{/if}
 						</div>
 
-						<div class="stage-actions">
-							<a href="/job-applications/{jobApplication?.id}/interview-stages/{stage.id}/edit" class="btn btn-small btn-primary">
-								Edit
+						<!-- Stage Actions -->
+						<div class="flex gap-2 pt-2">
+							<a 
+								href="/job-applications/{jobApplication?.id}/interview-stages/{stage.id}/edit" 
+								class="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+							>
+								✏️ Edit
 							</a>
 							<button
 								on:click={() => handleDeleteStage(stage.id)}
-								class="btn btn-small btn-danger"
+								class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100 transition-colors font-medium"
 							>
-								Delete
+								🗑️ Delete
 							</button>
 						</div>
 					</div>
@@ -315,296 +382,6 @@
 		{/if}
 	{/if}
 </div>
-
-<style>
-	.interview-stages-container {
-		max-width: 900px;
-		margin: 0 auto;
-		padding: 2rem;
-	}
-
-	.header {
-		margin-bottom: 2rem;
-	}
-
-	.breadcrumb {
-		font-size: 0.9rem;
-		color: #666;
-		margin-bottom: 1rem;
-	}
-
-	.breadcrumb a {
-		color: #007bff;
-		text-decoration: none;
-	}
-
-	.breadcrumb a:hover {
-		text-decoration: underline;
-	}
-
-	h1 {
-		font-size: 2rem;
-		margin: 0 0 0.5rem 0;
-		color: #333;
-	}
-
-	.subtitle {
-		color: #666;
-		font-size: 1.1rem;
-		margin: 0;
-	}
-
-	.alert {
-		padding: 1rem;
-		border-radius: 4px;
-		margin-bottom: 2rem;
-	}
-
-	.alert-error {
-		background-color: #fee;
-		border: 1px solid #fcc;
-		color: #c33;
-	}
-
-	.loading,
-	.empty-state {
-		text-align: center;
-		padding: 3rem 1rem;
-		color: #666;
-		font-size: 1.1rem;
-	}
-
-	.create-stage-btn {
-		margin-bottom: 2rem;
-	}
-
-	.create-form {
-		background: #f5f5f5;
-		padding: 2rem;
-		border-radius: 8px;
-		margin-bottom: 2rem;
-		border: 1px solid #ddd;
-	}
-
-	.create-form h2 {
-		margin-top: 0;
-		color: #333;
-	}
-
-	.form-group {
-		margin-bottom: 1.5rem;
-	}
-
-	.form-group label {
-		display: block;
-		margin-bottom: 0.5rem;
-		font-weight: 600;
-		color: #333;
-	}
-
-	.form-group input,
-	.form-group select,
-	.form-group textarea {
-		width: 100%;
-		padding: 0.75rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		font-size: 1rem;
-		font-family: inherit;
-	}
-
-	.form-group input:disabled,
-	.form-group select:disabled,
-	.form-group textarea:disabled {
-		background-color: #eee;
-		cursor: not-allowed;
-	}
-
-	.form-actions {
-		display: flex;
-		gap: 1rem;
-		margin-top: 2rem;
-	}
-
-	.btn {
-		padding: 0.75rem 1.5rem;
-		border: none;
-		border-radius: 4px;
-		font-size: 1rem;
-		cursor: pointer;
-		transition: all 0.2s;
-		font-weight: 600;
-		text-decoration: none;
-		display: inline-block;
-	}
-
-	.btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.btn:not(:disabled):hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	.btn-primary {
-		background-color: #007bff;
-		color: white;
-	}
-
-	.btn-secondary {
-		background-color: #6c757d;
-		color: white;
-	}
-
-	.btn-danger {
-		background-color: #dc3545;
-		color: white;
-	}
-
-	.btn-small {
-		padding: 0.5rem 1rem;
-		font-size: 0.9rem;
-	}
-
-	.stages-timeline {
-		margin-top: 3rem;
-	}
-
-	.stages-timeline h2 {
-		color: #333;
-		margin-bottom: 1.5rem;
-	}
-
-	.stage-card {
-		background: white;
-		border: 1px solid #ddd;
-		border-radius: 8px;
-		padding: 1.5rem;
-		margin-bottom: 1.5rem;
-		transition: all 0.2s;
-	}
-
-	.stage-card:hover {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	}
-
-	.stage-header {
-		display: flex;
-		align-items: center;
-		gap: 1.5rem;
-		margin-bottom: 1rem;
-		padding-bottom: 1rem;
-		border-bottom: 1px solid #eee;
-	}
-
-	.stage-number {
-		width: 40px;
-		height: 40px;
-		background-color: #007bff;
-		color: white;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: bold;
-		font-size: 1.1rem;
-		flex-shrink: 0;
-	}
-
-	.stage-info {
-		flex-grow: 1;
-	}
-
-	.stage-info h3 {
-		margin: 0 0 0.25rem 0;
-		font-size: 1.25rem;
-		color: #333;
-	}
-
-	.stage-info .date {
-		margin: 0;
-		color: #666;
-		font-size: 0.9rem;
-	}
-
-	.stage-status {
-		display: flex;
-		align-items: center;
-	}
-
-	.badge {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		border-radius: 4px;
-		font-size: 0.9rem;
-		font-weight: 600;
-	}
-
-	.badge-success {
-		background-color: #d4edda;
-		color: #155724;
-	}
-
-	.badge-danger {
-		background-color: #f8d7da;
-		color: #721c24;
-	}
-
-	.badge-warning {
-		background-color: #fff3cd;
-		color: #856404;
-	}
-
-	.badge-info {
-		background-color: #d1ecf1;
-		color: #0c5460;
-	}
-
-	.stage-details {
-		margin-bottom: 1rem;
-		color: #555;
-	}
-
-	.stage-details p {
-		margin: 0.5rem 0;
-	}
-
-	.stage-details a {
-		color: #007bff;
-		text-decoration: none;
-	}
-
-	.stage-details a:hover {
-		text-decoration: underline;
-	}
-
-	.stage-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	@media (max-width: 768px) {
-		.interview-stages-container {
-			padding: 1rem;
-		}
-
-		.stage-header {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.stage-status {
-			width: 100%;
-		}
-
-		.stage-actions {
-			flex-direction: column;
-		}
-
-		.btn-small {
-			width: 100%;
-		}
-	}
+<style lang="postcss">
+	/* Tailwind styles are applied via classes in the template */
 </style>

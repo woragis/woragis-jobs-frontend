@@ -7,7 +7,7 @@
 	import { authApi } from '$lib/api/auth';
 
 	let { children } = $props();
-	let mobileMenuOpen = false;
+	let mobileMenuOpen = $state(false);
 
 	// Initialize auth store on app load
 	onMount(() => {
