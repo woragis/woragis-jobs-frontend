@@ -18,6 +18,10 @@
 	let tagsSearch = '';
 	let allTags: string[] = [];
 	let showFiltersPanel = false;
+	let selectedIds: Set<string> = new Set();
+	let bulkStatusUpdate = '';
+	let isBulkUpdating = false;
+	let showBulkDeleteConfirm = false;
 
 	const statusOptions: ApplicationStatus[] = [
 		'pending',
@@ -109,6 +113,97 @@
 
 	function hasActiveFilters(): boolean {
 		return !!(statusFilter || websiteFilter || appliedDateFrom || appliedDateTo || interestLevelFilter || tagsSearch);
+	}
+
+	function toggleSelect(id: string) {
+		if (selectedIds.has(id)) {
+			selectedIds.delete(id);
+		} else {
+			selectedIds.add(id);
+		}
+		selectedIds = selectedIds; // Trigger reactivity
+	}
+
+	function selectAll() {
+		applications.forEach(app => selectedIds.add(app.id));
+		selectedIds = selectedIds; // Trigger reactivity
+	}
+
+	function deselectAll() {
+		selectedIds.clear();
+		selectedIds = selectedIds; // Trigger reactivity
+	}
+
+	async function handleBulkStatusUpdate() {
+		if (!bulkStatusUpdate || selectedIds.size === 0) return;
+
+		isBulkUpdating = true;
+		let successCount = 0;
+		let failureCount = 0;
+
+		try {
+			for (const id of selectedIds) {
+				try {
+					await jobApplicationsApi.updateStatus(id, { status: bulkStatusUpdate as ApplicationStatus });
+					successCount++;
+				} catch (err) {
+					failureCount++;
+				}
+			}
+
+			// Reload applications
+			await loadApplications();
+			selectedIds.clear();
+			selectedIds = selectedIds;
+			bulkStatusUpdate = '';
+
+			if (failureCount === 0) {
+				error = null;
+			} else {
+				error = `Updated ${successCount} application(s). ${failureCount} failed.`;
+			}
+		} catch (err: any) {
+			error = 'Failed to update applications';
+			console.error('Bulk update error:', err);
+		} finally {
+			isBulkUpdating = false;
+		}
+	}
+
+	async function handleBulkDelete() {
+		if (selectedIds.size === 0) return;
+
+		isBulkUpdating = true;
+		let successCount = 0;
+		let failureCount = 0;
+
+		try {
+			for (const id of selectedIds) {
+				try {
+					await jobApplicationsApi.delete(id);
+					successCount++;
+				} catch (err) {
+					failureCount++;
+				}
+			}
+
+			// Reload applications
+			await loadApplications();
+			selectedIds.clear();
+			selectedIds = selectedIds;
+			showBulkDeleteConfirm = false;
+
+			if (failureCount === 0) {
+				error = null;
+			} else {
+				error = `Deleted ${successCount} application(s). ${failureCount} failed.`;
+			}
+		} catch (err: any) {
+			error = 'Failed to delete applications';
+			console.error('Bulk delete error:', err);
+		} finally {
+			isBulkUpdating = false;
+		}
 	}
 
 	function getStatusColor(status: ApplicationStatus): string {
@@ -300,31 +395,127 @@
 			</button>
 		</div>
 	{:else}
+		<!-- Batch Operations Toolbar -->
+		{#if selectedIds.size > 0}
+			<div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div class="flex items-center gap-2">
+						<span class="font-semibold text-blue-900">
+							{selectedIds.size} application{selectedIds.size !== 1 ? 's' : ''} selected
+						</span>
+						<button
+							on:click={deselectAll}
+							class="text-sm text-blue-600 hover:text-blue-800 underline"
+						>
+							Clear selection
+						</button>
+					</div>
+
+					<div class="flex flex-col md:flex-row gap-2">
+						<!-- Bulk Status Update -->
+						<div class="flex gap-2">
+							<select
+								bind:value={bulkStatusUpdate}
+								class="rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+								disabled={isBulkUpdating}
+							>
+								<option value="">Change Status...</option>
+								{#each statusOptions as status}
+									<option value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+								{/each}
+							</select>
+							<button
+								on:click={handleBulkStatusUpdate}
+								disabled={!bulkStatusUpdate || isBulkUpdating}
+								class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+							>
+								{isBulkUpdating ? 'Updating...' : 'Update'}
+							</button>
+						</div>
+
+						<!-- Bulk Delete -->
+						<button
+							on:click={() => (showBulkDeleteConfirm = true)}
+							disabled={isBulkUpdating}
+							class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+						>
+							🗑️ Delete Selected
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Bulk Delete Confirmation -->
+			{#if showBulkDeleteConfirm}
+				<div class="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
+					<p class="mb-4 font-semibold text-red-900">
+						⚠️ Are you sure you want to delete {selectedIds.size} application{selectedIds.size !== 1 ? 's' : ''}?
+						This action cannot be undone.
+					</p>
+					<div class="flex gap-2">
+						<button
+							on:click={handleBulkDelete}
+							disabled={isBulkUpdating}
+							class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:bg-gray-300"
+						>
+							{isBulkUpdating ? 'Deleting...' : 'Yes, Delete'}
+						</button>
+						<button
+							on:click={() => (showBulkDeleteConfirm = false)}
+							disabled={isBulkUpdating}
+							class="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:bg-gray-100"
+						>
+							Cancel
+						</button>
+					</div>
+				</div>
+			{/if}
+		{:else if applications.length > 0}
+			<!-- Select All Bar -->
+			<div class="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+				<input
+					type="checkbox"
+					on:change={selectAll}
+					class="h-5 w-5 rounded cursor-pointer"
+					aria-label="Select all applications"
+				/>
+				<span class="text-sm text-gray-600">Select all on this page</span>
+			</div>
+		{/if}
+
 		<!-- Applications List -->
 		<div class="space-y-4">
 			{#each applications as application (application.id)}
 				<div
-					class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+					class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md {selectedIds.has(application.id) ? 'ring-2 ring-blue-500 ring-offset-0' : ''}"
 				>
 					<div class="flex items-start justify-between gap-4">
-						<div 
-							role="button"
-							tabindex="0"
-							on:click={() => goto(`/job-applications/${application.id}`)}
-							on:keydown={(e) => e.key === 'Enter' && goto(`/job-applications/${application.id}`)}
-							class="flex-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-						>
-							<div class="mb-2 flex items-center gap-3">
-								<h2 class="text-xl font-semibold text-gray-900">{application.jobTitle}</h2>
-								<span
-									class="rounded-full px-3 py-1 text-xs font-medium {getStatusColor(application.status)}"
-								>
-									{application.status}
-								</span>
-							</div>
-							<p class="text-lg font-medium text-gray-700">{application.companyName}</p>
-							{#if application.location}
-								<p class="text-sm text-gray-500">📍 {application.location}</p>
+						<div class="flex items-start gap-3 flex-1">
+							<input
+								type="checkbox"
+								checked={selectedIds.has(application.id)}
+								on:change={() => toggleSelect(application.id)}
+								class="h-5 w-5 rounded cursor-pointer mt-1"
+								aria-label="Select this application"
+							/>
+							<div 
+								role="button"
+								tabindex="0"
+								on:click={() => goto(`/job-applications/${application.id}`)}
+								on:keydown={(e) => e.key === 'Enter' && goto(`/job-applications/${application.id}`)}
+								class="flex-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+							>
+								<div class="mb-2 flex items-center gap-3">
+									<h2 class="text-xl font-semibold text-gray-900">{application.jobTitle}</h2>
+									<span
+										class="rounded-full px-3 py-1 text-xs font-medium {getStatusColor(application.status)}"
+									>
+										{application.status}
+									</span>
+								</div>
+								<p class="text-lg font-medium text-gray-700">{application.companyName}</p>
+								{#if application.location}
+									<p class="text-sm text-gray-500">📍 {application.location}</p>
 							{/if}
 							<div class="mt-3 flex flex-wrap gap-2">
 								<span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
@@ -350,6 +541,7 @@
 							</div>
 							<div class="mt-3 text-sm text-gray-500">
 								<p>Applied: {formatDate(application.appliedAt)} • Created: {formatDate(application.createdAt)}</p>
+							</div>
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
