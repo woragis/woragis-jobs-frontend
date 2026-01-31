@@ -12,6 +12,12 @@
 	let limit = 20;
 	let statusFilter: ApplicationStatus | '' = '';
 	let websiteFilter = '';
+	let appliedDateFrom = '';
+	let appliedDateTo = '';
+	let interestLevelFilter: string | '' = '';
+	let tagsSearch = '';
+	let allTags: string[] = [];
+	let showFiltersPanel = false;
 
 	const statusOptions: ApplicationStatus[] = [
 		'pending',
@@ -31,10 +37,21 @@
 				page,
 				limit,
 				status: statusFilter || undefined,
-				website: websiteFilter || undefined
+				website: websiteFilter || undefined,
+				appliedDateFrom: appliedDateFrom || undefined,
+				appliedDateTo: appliedDateTo || undefined,
+				interestLevel: interestLevelFilter || undefined,
+				tags: tagsSearch ? tagsSearch.split(',').map(t => t.trim()) : undefined
 			});
 			applications = response.applications;
 			total = response.total;
+			
+			// Extract all unique tags from applications
+			const tagSet = new Set<string>();
+			applications.forEach(app => {
+				app.tags?.forEach(tag => tagSet.add(tag));
+			});
+			allTags = Array.from(tagSet).sort();
 		} catch (err: any) {
 			error = err.response?.data?.message || err.message || 'Failed to load job applications';
 			console.error('Error loading applications:', err);
@@ -53,6 +70,45 @@
 		websiteFilter = newWebsite;
 		page = 1;
 		loadApplications();
+	}
+
+	function handleDateFromChange(date: string) {
+		appliedDateFrom = date;
+		page = 1;
+		loadApplications();
+	}
+
+	function handleDateToChange(date: string) {
+		appliedDateTo = date;
+		page = 1;
+		loadApplications();
+	}
+
+	function handleInterestLevelChange(level: string | '') {
+		interestLevelFilter = level;
+		page = 1;
+		loadApplications();
+	}
+
+	function handleTagsChange(tags: string) {
+		tagsSearch = tags;
+		page = 1;
+		loadApplications();
+	}
+
+	function clearAllFilters() {
+		statusFilter = '';
+		websiteFilter = '';
+		appliedDateFrom = '';
+		appliedDateTo = '';
+		interestLevelFilter = '';
+		tagsSearch = '';
+		page = 1;
+		loadApplications();
+	}
+
+	function hasActiveFilters(): boolean {
+		return !!(statusFilter || websiteFilter || appliedDateFrom || appliedDateTo || interestLevelFilter || tagsSearch);
 	}
 
 	function getStatusColor(status: ApplicationStatus): string {
@@ -96,7 +152,25 @@
 		</button>
 	</div>
 
-	<!-- Filters -->
+	<!-- Filter Controls -->
+	<div class="mb-6 flex gap-3">
+		<button
+			on:click={() => (showFiltersPanel = !showFiltersPanel)}
+			class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+		>
+			🔍 {showFiltersPanel ? 'Hide' : 'Show'} Advanced Filters
+		</button>
+		{#if hasActiveFilters()}
+			<button
+				on:click={clearAllFilters}
+				class="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+			>
+				✕ Clear All Filters
+			</button>
+		{/if}
+	</div>
+
+	<!-- Basic Filters (Always Visible) -->
 	<div class="mb-6 flex gap-4">
 		<div class="flex-1">
 			<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -124,6 +198,85 @@
 			/>
 		</div>
 	</div>
+
+	<!-- Advanced Filters Panel -->
+	{#if showFiltersPanel}
+		<div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<!-- Date Range -->
+				<div>
+					<label for="date-from" class="block text-sm font-medium text-gray-700 mb-1">Applied Date From</label>
+					<input
+						id="date-from"
+						type="date"
+						bind:value={appliedDateFrom}
+						on:change={() => handleDateFromChange(appliedDateFrom)}
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					/>
+					<p class="text-xs text-gray-500 mt-1">📅 Start date for applications</p>
+				</div>
+
+				<div>
+					<label for="date-to" class="block text-sm font-medium text-gray-700 mb-1">Applied Date To</label>
+					<input
+						id="date-to"
+						type="date"
+						bind:value={appliedDateTo}
+						on:change={() => handleDateToChange(appliedDateTo)}
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					/>
+					<p class="text-xs text-gray-500 mt-1">📅 End date for applications</p>
+				</div>
+
+				<!-- Interest Level -->
+				<div>
+					<label for="interest-filter" class="block text-sm font-medium text-gray-700 mb-1">Interest Level</label>
+					<select
+						id="interest-filter"
+						bind:value={interestLevelFilter}
+						on:change={() => handleInterestLevelChange(interestLevelFilter)}
+						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					>
+						<option value="">All Levels</option>
+						<option value="very_high">⭐⭐⭐ Very High</option>
+						<option value="high">⭐⭐ High</option>
+						<option value="medium">⭐ Medium</option>
+						<option value="low">Low</option>
+					</select>
+					<p class="text-xs text-gray-500 mt-1">💡 Filter by interest level</p>
+				</div>
+			</div>
+
+			<!-- Tags Search -->
+			<div>
+				<label for="tags-search" class="block text-sm font-medium text-gray-700 mb-1">Search by Tags</label>
+				<input
+					id="tags-search"
+					type="text"
+					bind:value={tagsSearch}
+					on:input={() => handleTagsChange(tagsSearch)}
+					placeholder="Enter tags separated by commas (e.g., 'remote, startup')"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+				<p class="text-xs text-gray-500 mt-1">🏷️ Search by multiple tags (comma-separated)</p>
+				{#if allTags.length > 0}
+					<div class="mt-2 flex flex-wrap gap-2">
+						{#each allTags.slice(0, 8) as tag}
+							<button
+								on:click={() => (tagsSearch = tag)}
+								class="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 hover:bg-blue-200"
+							>
+								{tag}
+							</button>
+						{/each}
+						{#if allTags.length > 8}
+							<span class="inline-block text-xs text-gray-500">+{allTags.length - 8} more</span>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
 
 	<!-- Error Message -->
 	{#if error}

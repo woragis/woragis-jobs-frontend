@@ -109,6 +109,9 @@ export interface ListJobApplicationsParams {
 	source?: string;
 	applicationMethod?: string;
 	language?: string;
+	appliedDateFrom?: string;
+	appliedDateTo?: string;
+	tags?: string[];
 }
 
 export interface PaginatedResponse<T> {

@@ -71,6 +71,11 @@ class JobApplicationsApiClient {
 		if (params?.applicationMethod)
 			queryParams.append('applicationMethod', params.applicationMethod);
 		if (params?.language) queryParams.append('language', params.language);
+		if (params?.appliedDateFrom) queryParams.append('appliedDateFrom', params.appliedDateFrom);
+		if (params?.appliedDateTo) queryParams.append('appliedDateTo', params.appliedDateTo);
+		if (params?.tags && params.tags.length > 0) {
+			params.tags.forEach(tag => queryParams.append('tags', tag));
+		}
 
 		const queryString = queryParams.toString();
 		const url = queryString ? `/?${queryString}` : '/';
