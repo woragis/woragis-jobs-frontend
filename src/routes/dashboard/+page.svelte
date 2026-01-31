@@ -2,12 +2,17 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { mlServiceApi, type Recommendation, type AnalyticsOverview } from '$lib/api/ml-service';
+	import { jobApplicationsApi, type JobApplication } from '$lib/api/job-applications';
 	import { currentUser } from '$lib/stores/auth';
 
 	let loading = true;
 	let error: string | null = null;
 	let recommendations: Recommendation[] = [];
 	let analytics: AnalyticsOverview | null = null;
+	let applications: JobApplication[] = [];
+	let statusStats: Record<string, number> = {};
+	let interestStats: Record<string, number> = {};
+	let responseRateByWeek: Array<{ week: string; rate: number }> = [];
 
 	async function loadDashboardData() {
 		loading = true;
@@ -21,20 +26,67 @@
 				return;
 			}
 
-			// Load recommendations and analytics in parallel
-			const [recsResponse, analyticsData] = await Promise.all([
+			// Load all data in parallel
+			const [recsResponse, analyticsData, appsResponse] = await Promise.all([
 				mlServiceApi.getRecommendations(userId, { limit: 10 }),
-				mlServiceApi.getAnalyticsOverview(userId).catch(() => null), // Analytics is optional
+				mlServiceApi.getAnalyticsOverview(userId).catch(() => null),
+				jobApplicationsApi.list({ limit: 1000 }).catch(() => ({ applications: [] }))
 			]);
 
 			recommendations = recsResponse.recommendations || [];
 			analytics = analyticsData;
+			applications = appsResponse.applications || [];
+
+			// Calculate statistics
+			calculateStats();
 		} catch (err: any) {
 			error = err.response?.data?.message || err.message || 'Failed to load dashboard data';
 			console.error('Error loading dashboard:', err);
 		} finally {
 			loading = false;
 		}
+	}
+
+	function calculateStats() {
+		// Status distribution
+		const statuses: Record<string, number> = {};
+		const interests: Record<string, number> = {};
+
+		applications.forEach(app => {
+			statuses[app.status] = (statuses[app.status] || 0) + 1;
+			const level = app.interestLevel || 'not-set';
+			interests[level] = (interests[level] || 0) + 1;
+		});
+
+		statusStats = statuses;
+		interestStats = interests;
+
+		// Calculate response rate by week (last 4 weeks)
+		const weeklyRates = [];
+		const today = new Date();
+		for (let i = 3; i >= 0; i--) {
+			const weekStart = new Date(today);
+			weekStart.setDate(weekStart.getDate() - i * 7);
+			const weekEnd = new Date(weekStart);
+			weekEnd.setDate(weekEnd.getDate() + 6);
+
+			const weekApps = applications.filter(app => {
+				if (!app.appliedAt) return false;
+				const appDate = new Date(app.appliedAt);
+				return appDate >= weekStart && appDate <= weekEnd;
+			});
+
+			const respondedApps = weekApps.filter(app => 
+				app.status === 'contacted' || app.status === 'accepted' || app.status === 'rejected'
+			);
+
+			const rate = weekApps.length > 0 ? respondedApps.length / weekApps.length : 0;
+			weeklyRates.push({
+				week: `Week ${4 - i}`,
+				rate: Math.round(rate * 100)
+			});
+		}
+		responseRateByWeek = weeklyRates;
 	}
 
 	function getTierColor(tier: string): string {
@@ -187,6 +239,79 @@
 					</ul>
 				</div>
 			{/if}
+
+			<!-- Analytics Charts Section -->
+			<div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<!-- Status Distribution -->
+				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<h3 class="mb-4 text-lg font-semibold text-gray-900">Application Status Distribution</h3>
+					<div class="space-y-3">
+						{#each Object.entries(statusStats) as [status, count]}
+							{@const percentage = (count / applications.length) * 100}
+							<div>
+								<div class="flex items-center justify-between mb-1">
+									<span class="text-sm font-medium text-gray-700 capitalize">{status}</span>
+									<span class="text-sm font-semibold text-gray-900">{count} ({Math.round(percentage)}%)</span>
+								</div>
+								<div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+									<div
+										class="h-full bg-blue-600 rounded-full"
+										style="width: {percentage}%"
+									></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Interest Level Distribution -->
+				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+					<h3 class="mb-4 text-lg font-semibold text-gray-900">Interest Level Breakdown</h3>
+					<div class="space-y-3">
+						{#each Object.entries(interestStats) as [level, count]}
+							{@const percentage = (count / applications.length) * 100}
+							<div>
+								<div class="flex items-center justify-between mb-1">
+									<span class="text-sm font-medium text-gray-700 capitalize">
+										{#if level === 'not-set'}Not Set
+										{:else}
+											{level.replace(/_/g, ' ')}
+										{/if}
+									</span>
+									<span class="text-sm font-semibold text-gray-900">{count} ({Math.round(percentage)}%)</span>
+								</div>
+								<div class="h-2 bg-purple-200 rounded-full overflow-hidden">
+									<div
+										class="h-full bg-purple-600 rounded-full"
+										style="width: {percentage}%"
+									></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Response Rate Trend (Last 4 Weeks) -->
+				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
+					<h3 class="mb-4 text-lg font-semibold text-gray-900">Response Rate Trend (Last 4 Weeks)</h3>
+					<div class="flex items-end justify-around h-48 gap-4">
+						{#each responseRateByWeek as { week, rate }}
+							<div class="flex flex-col items-center gap-2 flex-1">
+								<div
+									class="w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t transition-all hover:opacity-80"
+									style="height: {Math.max(rate, 5)}%; min-height: 40px;"
+									title="{rate}% response rate"
+								></div>
+								<span class="text-xs font-medium text-gray-700">{rate}%</span>
+								<span class="text-xs text-gray-500">{week}</span>
+							</div>
+						{/each}
+					</div>
+					<p class="mt-4 text-xs text-gray-500">
+						💡 Response rate shows the percentage of applications that received a response (contacted, accepted, or rejected) out of total applications in that week.
+					</p>
+				</div>
+			</div>
 		{/if}
 
 		<!-- Top Recommendations Section -->
