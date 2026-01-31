@@ -44,7 +44,7 @@
 				website: websiteFilter || undefined,
 				appliedDateFrom: appliedDateFrom || undefined,
 				appliedDateTo: appliedDateTo || undefined,
-				interestLevel: interestLevelFilter || undefined,
+				interestLevel: interestLevelFilter ? (interestLevelFilter as any) : undefined,
 				tags: tagsSearch ? tagsSearch.split(',').map(t => t.trim()) : undefined
 			});
 			applications = response.applications;

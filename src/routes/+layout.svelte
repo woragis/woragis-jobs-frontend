@@ -61,6 +61,9 @@
 						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Resumes
 						</a>
+						<a href="/reports" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
+							Reports
+						</a>
 						<a href="/resumes/generate" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors">
 							✨ Generate Resume
 						</a>
@@ -121,6 +124,13 @@
 						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
 					>
 						Resumes
+					</a>
+					<a 
+						href="/reports" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						📊 Reports
 					</a>
 					<a 
 						href="/resumes/generate" 

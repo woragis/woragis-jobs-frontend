@@ -321,12 +321,6 @@
 							<dt class="text-sm font-medium text-gray-500">Featured</dt>
 							<dd class="mt-1 text-gray-900">{resume.isFeatured ? '✓ Yes' : 'No'}</dd>
 						</div>
-						{#if resume.metrics}
-							<div>
-								<dt class="text-sm font-medium text-gray-500">Metrics</dt>
-								<dd class="mt-1 text-gray-900">Calculated</dd>
-							</div>
-						{/if}
 					</dl>
 				</div>
 			</div>
