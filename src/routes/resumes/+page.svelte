@@ -13,6 +13,7 @@
 	let tags = '';
 	let selectedResumes = new Set<string>();
 	let isDownloadingBatch = false;
+	let showComparisonModal = false;
 
 	onMount(async () => {
 		// Ensure CSRF token header is set by backend middleware for subsequent uploads
@@ -194,6 +195,18 @@
 		}
 	}
 
+	function openComparisonModal() {
+		if (selectedResumes.size < 2) {
+			error = 'Please select at least 2 resumes to compare';
+			return;
+		}
+		showComparisonModal = true;
+	}
+
+	function closeComparisonModal() {
+		showComparisonModal = false;
+	}
+
 	async function handleDownload(id: string, fileName: string) {
 		try {
 			const blob = await resumesApi.download(id);
@@ -301,6 +314,15 @@
 								>
 									📥 Download All
 								</button>
+								{#if selectedResumes.size >= 2}
+									<button
+										class="btn-small btn-info"
+										on:click={openComparisonModal}
+										disabled={isDownloadingBatch}
+									>
+										👁️ Compare
+									</button>
+								{/if}
 							</div>
 						{/if}
 					</div>
@@ -365,6 +387,70 @@
 					</div>
 				</div>
 			{/each}
+		</div>
+	{/if}
+
+	<!-- Comparison Modal -->
+	{#if showComparisonModal}
+		<div class="modal-overlay" on:click={closeComparisonModal}>
+			<div class="modal-content" on:click|stopPropagation>
+				<div class="modal-header">
+					<h2>Resume Comparison</h2>
+					<button class="modal-close" on:click={closeComparisonModal}>✕</button>
+				</div>
+
+				<div class="modal-body">
+					<div class="comparison-list">
+						{#each Array.from(selectedResumes) as resumeId}
+							{@const resume = resumes.find((r) => r.id === resumeId)}
+							{#if resume}
+								<div class="comparison-item">
+									<div class="item-header">
+										<h4>{resume.title}</h4>
+										{#if resume.isMain}
+											<span class="badge badge-primary">Main</span>
+										{/if}
+									</div>
+									<div class="item-details">
+										<p><strong>File:</strong> {resume.fileName}</p>
+										<p><strong>Size:</strong> {(resume.fileSize / 1024).toFixed(2)} KB</p>
+										<p><strong>Created:</strong> {new Date(resume.createdAt).toLocaleDateString()}</p>
+										{#if resume.tags.length > 0}
+											<div class="tags">
+												{#each resume.tags as tag}
+													<span class="tag">{tag}</span>
+												{/each}
+											</div>
+										{/if}
+									</div>
+									<div class="item-actions">
+										<a
+											href={`/resumes/${resume.id}`}
+											class="btn-small btn-info"
+										>
+											ℹ️ View
+										</a>
+										<button
+											class="btn-small btn-secondary"
+											on:click={() => {
+												handleDownload(resume.id, resume.fileName);
+											}}
+										>
+											📥 Download
+										</button>
+									</div>
+								</div>
+							{/if}
+						{/each}
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button class="btn-small btn-secondary" on:click={closeComparisonModal}>
+						Close
+					</button>
+				</div>
+			</div>
 		</div>
 	{/if}
 </div>
@@ -689,6 +775,151 @@
 		}
 
 		.action-buttons .btn-small {
+			width: 100%;
+		}
+	}
+
+	/* Modal Styles */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		padding: 1rem;
+	}
+
+	.modal-content {
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+		max-width: 800px;
+		width: 100%;
+		max-height: 90vh;
+		display: flex;
+		flex-direction: column;
+		animation: slideIn 0.3s ease-out;
+	}
+
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem;
+		border-bottom: 1px solid #eee;
+	}
+
+	.modal-header h2 {
+		margin: 0;
+		font-size: 1.5rem;
+	}
+
+	.modal-close {
+		background: none;
+		border: none;
+		font-size: 1.5rem;
+		cursor: pointer;
+		color: #666;
+		padding: 0;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.modal-close:hover {
+		background-color: #f5f5f5;
+		border-radius: 4px;
+	}
+
+	.modal-body {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1.5rem;
+	}
+
+	.comparison-list {
+		display: grid;
+		gap: 1rem;
+	}
+
+	.comparison-item {
+		border: 1px solid #ddd;
+		border-radius: 8px;
+		padding: 1.25rem;
+		background: #fafafa;
+		transition: all 0.2s;
+	}
+
+	.comparison-item:hover {
+		background: white;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.item-header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.item-header h4 {
+		margin: 0;
+		font-size: 1.1rem;
+		color: #333;
+	}
+
+	.item-details {
+		margin-bottom: 1rem;
+		color: #666;
+		font-size: 0.95rem;
+	}
+
+	.item-details p {
+		margin: 0.35rem 0;
+	}
+
+	.item-actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.modal-footer {
+		padding: 1.5rem;
+		border-top: 1px solid #eee;
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+	}
+
+	@media (max-width: 768px) {
+		.modal-content {
+			max-width: 95%;
+		}
+
+		.item-actions {
+			flex-direction: column;
+		}
+
+		.item-actions .btn-small {
 			width: 100%;
 		}
 	}
