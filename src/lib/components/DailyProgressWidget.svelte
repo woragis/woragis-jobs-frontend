@@ -42,7 +42,7 @@
 					<div
 						class={`h-2 rounded-full transition-all ${getProgressColor($todayProgressStore.totalProgress)}`}
 						style={`width: ${Math.min($todayProgressStore.totalProgress, 100)}%`}
-					/>
+					></div>
 				</div>
 				<p class="text-xs text-gray-500 mt-1">{getProgressLabel($todayProgressStore.totalProgress)}</p>
 			</div>
@@ -59,7 +59,7 @@
 					<div
 						class={`h-2 rounded-full transition-all ${getProgressColor($todayProgressStore.juniorProgress)}`}
 						style={`width: ${Math.min($todayProgressStore.juniorProgress, 100)}%`}
-					/>
+					></div>
 				</div>
 				<p class="text-xs text-gray-500 mt-1">
 					{getProgressLabel($todayProgressStore.juniorProgress)}
@@ -78,7 +78,7 @@
 					<div
 						class={`h-2 rounded-full transition-all ${getProgressColor($todayProgressStore.plenoProgress)}`}
 						style={`width: ${Math.min($todayProgressStore.plenoProgress, 100)}%`}
-					/>
+					></div>
 				</div>
 				<p class="text-xs text-gray-500 mt-1">{getProgressLabel($todayProgressStore.plenoProgress)}</p>
 			</div>
@@ -95,7 +95,7 @@
 					<div
 						class={`h-2 rounded-full transition-all ${getProgressColor($todayProgressStore.seniorProgress)}`}
 						style={`width: ${Math.min($todayProgressStore.seniorProgress, 100)}%`}
-					/>
+					></div>
 				</div>
 				<p class="text-xs text-gray-500 mt-1">{getProgressLabel($todayProgressStore.seniorProgress)}</p>
 			</div>

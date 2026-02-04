@@ -92,8 +92,8 @@
 	<div class="mb-6 space-y-4">
 		<!-- Preset Selection -->
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-2">View</label>
-			<div class="flex gap-2">
+			<label for="preset-select" class="block text-sm font-medium text-gray-700 mb-2">View</label>
+			<div id="preset-select" class="flex gap-2">
 				<button
 					on:click={() => {
 						selectedPreset = '7days';
@@ -168,7 +168,8 @@
 	<!-- Chart -->
 	{#if $historicalProgressStore && $historicalProgressStore.length > 0}
 		<div class="space-y-6">
-			{#each ['total', 'junior', 'pleno', 'senior'] as metric}
+			{#each ['total', 'junior', 'pleno', 'senior'] as metricStr}
+				{@const metric = metricStr as 'total' | 'junior' | 'pleno' | 'senior'}
 				{@const chartData = getChartData($historicalProgressStore, metric)}
 				{@const maxValue = Math.max(...chartData.map((d) => Math.max(d.count, d.target)))}
 				<div>
