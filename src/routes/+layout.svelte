@@ -5,6 +5,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { authStore, isAuthenticated, currentUser } from '$lib/stores/auth';
 	import { authApi } from '$lib/api/auth';
+	import DailyObjectivesModal from '$lib/components/DailyObjectivesModal.svelte';
 
 	let { children } = $props();
 	let mobileMenuOpen = $state(false);
@@ -58,6 +59,9 @@
 						<a href="/dashboard" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Dashboard
 						</a>
+						<a href="/daily-progress" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
+							📊 Daily Progress
+						</a>
 						<a href="/resumes" class="text-sm text-gray-700 hover:text-blue-600 transition-colors">
 							Resumes
 						</a>
@@ -101,8 +105,6 @@
 				</button>
 			</div>
 
-			<!-- Mobile Navigation Menu -->
-			{#if mobileMenuOpen}
 				<div class="md:hidden border-t border-gray-200 bg-white py-4 space-y-2">
 					<a 
 						href="/job-applications" 
@@ -117,6 +119,13 @@
 						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
 					>
 						Dashboard
+					</a>
+					<a 
+						href="/daily-progress" 
+						on:click={closeMobileMenu}
+						class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+					>
+						📊 Daily Progress
 					</a>
 					<a 
 						href="/resumes" 
@@ -159,9 +168,10 @@
 						Sign Out
 					</button>
 				</div>
-			{/if}
 		</div>
 	</nav>
 {/if}
+
+<DailyObjectivesModal />
 
 {@render children()}

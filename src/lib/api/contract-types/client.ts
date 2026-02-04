@@ -7,7 +7,9 @@ import type { ContractType, ApiResponse } from './types';
  * Handles all API calls to the contract types endpoints
  */
 class ContractTypesApiClient {
-	private client = createAuthenticatedClient(`${config.jobsApiUrl}/job-applications/contract-types`);
+	private client = createAuthenticatedClient(
+		`${config.jobsApiUrl}/job-applications/contract-types`
+	);
 
 	/**
 	 * Get a contract type by ID

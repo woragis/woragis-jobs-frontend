@@ -36,7 +36,10 @@
 				tagInput = text.trim();
 			} else if (field === 'tags') {
 				// For tags, split by comma or newline and add all
-				const newTags = text.split(/[,\n]/).map(t => t.trim()).filter(t => t);
+				const newTags = text
+					.split(/[,\n]/)
+					.map((t) => t.trim())
+					.filter((t) => t);
 				formData.tags = [...new Set([...(formData.tags || []), ...newTags])];
 			} else {
 				formData[field] = text.trim() as any;
@@ -49,10 +52,7 @@
 	// Fetch reference data (job levels and contract types)
 	async function fetchReferenceData() {
 		try {
-			const [levels, types] = await Promise.all([
-				jobLevelsApi.list(),
-				contractTypesApi.list()
-			]);
+			const [levels, types] = await Promise.all([jobLevelsApi.list(), contractTypesApi.list()]);
 			jobLevels = levels;
 			contractTypes = types;
 		} catch (err) {
@@ -72,7 +72,7 @@
 			// Our response interceptor will extract it and store it in memory
 			await fetch(`${config.jobsApiUrl}/csrf-token`, {
 				method: 'GET',
-				credentials: 'include',
+				credentials: 'include'
 			});
 		} catch (err: any) {
 			// Even if the request fails, the CSRF token should still be set
@@ -122,14 +122,17 @@
 						// Fetch new token from dedicated endpoint
 						await fetch(`${config.jobsApiUrl}/csrf-token`, {
 							method: 'GET',
-							credentials: 'include',
+							credentials: 'include'
 						});
 						// Retry the create request
 						const application = await jobApplicationsApi.create(formData);
 						goto(`/job-applications/${application.id}`);
 						return;
 					} catch (retryErr: any) {
-						error = retryErr.response?.data?.message || retryErr.message || 'Failed to create job application';
+						error =
+							retryErr.response?.data?.message ||
+							retryErr.message ||
+							'Failed to create job application';
 						console.error('Error creating application after retry:', retryErr);
 					}
 				} else {
@@ -150,7 +153,7 @@
 	<div class="mb-6">
 		<button
 			onclick={() => goto('/job-applications')}
-			class="text-blue-600 hover:text-blue-700 mb-4"
+			class="mb-4 text-blue-600 hover:text-blue-700"
 		>
 			← Back to Applications
 		</button>
@@ -161,10 +164,16 @@
 		<div class="mb-4 rounded-lg bg-red-50 p-4 text-red-800">{error}</div>
 	{/if}
 
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSubmit();
+		}}
+		class="space-y-6"
+	>
 		<!-- Required Fields -->
 		<div>
-			<label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">
+			<label for="companyName" class="mb-1 block text-sm font-medium text-gray-700">
 				Company Name <span class="text-red-500">*</span>
 			</label>
 			<div class="flex gap-2">
@@ -173,12 +182,12 @@
 					type="text"
 					bind:value={formData.companyName}
 					required
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="button"
 					onclick={() => pasteToField('companyName')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					class="rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -187,7 +196,7 @@
 		</div>
 
 		<div>
-			<label for="jobTitle" class="block text-sm font-medium text-gray-700 mb-1">
+			<label for="jobTitle" class="mb-1 block text-sm font-medium text-gray-700">
 				Job Title <span class="text-red-500">*</span>
 			</label>
 			<div class="flex gap-2">
@@ -196,12 +205,12 @@
 					type="text"
 					bind:value={formData.jobTitle}
 					required
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="button"
 					onclick={() => pasteToField('jobTitle')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					class="rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -210,7 +219,7 @@
 		</div>
 
 		<div>
-			<label for="jobUrl" class="block text-sm font-medium text-gray-700 mb-1">
+			<label for="jobUrl" class="mb-1 block text-sm font-medium text-gray-700">
 				Job URL <span class="text-red-500">*</span>
 			</label>
 			<div class="flex gap-2">
@@ -220,12 +229,12 @@
 					bind:value={formData.jobUrl}
 					required
 					placeholder="https://..."
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="button"
 					onclick={() => pasteToField('jobUrl')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					class="rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -234,15 +243,15 @@
 		</div>
 
 		<div>
-			<label for="website" class="block text-sm font-medium text-gray-700 mb-1">
+			<label for="website" class="mb-1 block text-sm font-medium text-gray-700">
 				Website <span class="text-red-500">*</span>
 			</label>
-			<p class="text-xs text-gray-500 mb-2">Where you found or will apply for this job.</p>
+			<p class="mb-2 text-xs text-gray-500">Where you found or will apply for this job.</p>
 			<select
 				id="website"
 				bind:value={formData.website}
 				required
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 			>
 				{#each websiteOptions as website}
 					<option value={website}>{website.charAt(0).toUpperCase() + website.slice(1)}</option>
@@ -253,13 +262,13 @@
 		<!-- Job Level and Contract Type -->
 		<div class="grid grid-cols-2 gap-4">
 			<div>
-				<label for="jobLevel" class="block text-sm font-medium text-gray-700 mb-1">Job Level</label>
-				<p class="text-xs text-gray-500 mb-2">Seniority and intensity classification</p>
+				<label for="jobLevel" class="mb-1 block text-sm font-medium text-gray-700">Job Level</label>
+				<p class="mb-2 text-xs text-gray-500">Seniority and intensity classification</p>
 				<select
 					id="jobLevel"
 					bind:value={formData.jobLevelId}
 					disabled={loadingLevels}
-					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
 				>
 					<option value={undefined}>Select job level...</option>
 					{#if loadingLevels}
@@ -267,7 +276,9 @@
 					{:else}
 						{#each jobLevels as level}
 							<option value={level.id}>
-								{level.seniority.charAt(0).toUpperCase() + level.seniority.slice(1)} - {level.intensity.charAt(0).toUpperCase() + level.intensity.slice(1)}
+								{level.seniority.charAt(0).toUpperCase() + level.seniority.slice(1)} - {level.intensity
+									.charAt(0)
+									.toUpperCase() + level.intensity.slice(1)}
 							</option>
 						{/each}
 					{/if}
@@ -275,20 +286,24 @@
 			</div>
 
 			<div>
-				<label for="contractType" class="block text-sm font-medium text-gray-700 mb-1">Contract Type</label>
-				<p class="text-xs text-gray-500 mb-2">Employment type for this position</p>
+				<label for="contractType" class="mb-1 block text-sm font-medium text-gray-700"
+					>Contract Type</label
+				>
+				<p class="mb-2 text-xs text-gray-500">Employment type for this position</p>
 				<select
 					id="contractType"
 					bind:value={formData.contractTypeId}
 					disabled={loadingTypes}
-					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
 				>
 					<option value={undefined}>Select contract type...</option>
 					{#if loadingTypes}
 						<option disabled>Loading...</option>
 					{:else}
 						{#each contractTypes as type}
-							<option value={type.id}>{type.name.charAt(0).toUpperCase() + type.name.slice(1).replace(/_/g, ' ')}</option>
+							<option value={type.id}
+								>{type.name.charAt(0).toUpperCase() + type.name.slice(1).replace(/_/g, ' ')}</option
+							>
 						{/each}
 					{/if}
 				</select>
@@ -297,19 +312,19 @@
 
 		<!-- Optional Fields -->
 		<div>
-			<label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+			<label for="location" class="mb-1 block text-sm font-medium text-gray-700">Location</label>
 			<div class="flex gap-2">
 				<input
 					id="location"
 					type="text"
 					bind:value={formData.location}
 					placeholder="City, State/Country"
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="button"
 					onclick={() => pasteToField('location')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					class="rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -318,36 +333,49 @@
 		</div>
 
 		<div>
-			<label for="interestLevel" class="block text-sm font-medium text-gray-700 mb-1">Interest Level</label>
-			<p class="text-xs text-gray-500 mb-2">How interested are you in this opportunity? Helps prioritize your applications.</p>
+			<label for="interestLevel" class="mb-1 block text-sm font-medium text-gray-700"
+				>Interest Level</label
+			>
+			<p class="mb-2 text-xs text-gray-500">
+				How interested are you in this opportunity? Helps prioritize your applications.
+			</p>
 			<select
 				id="interestLevel"
 				bind:value={formData.interestLevel}
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 			>
 				<option value={undefined}>Select interest level...</option>
 				{#each interestLevelOptions as level}
-					<option value={level.replace(/-/g, '_')}>{level.charAt(0).toUpperCase() + level.slice(1).replace(/-/g, ' ')}</option>
+					<option value={level.replace(/-/g, '_')}
+						>{level.charAt(0).toUpperCase() + level.slice(1).replace(/-/g, ' ')}</option
+					>
 				{/each}
 			</select>
 		</div>
 
 		<div>
-			<label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-			<p class="text-xs text-gray-500 mb-2">Add custom labels like "remote", "startup", or "FAANG" to organize applications.</p>
-			<div class="flex gap-2 mb-2">
+			<label for="tags" class="mb-1 block text-sm font-medium text-gray-700">Tags</label>
+			<p class="mb-2 text-xs text-gray-500">
+				Add custom labels like "remote", "startup", or "FAANG" to organize applications.
+			</p>
+			<div class="mb-2 flex gap-2">
 				<input
 					id="tags"
 					type="text"
 					bind:value={tagInput}
-					onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							addTag();
+						}
+					}}
 					placeholder="Add a tag and press Enter"
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="button"
 					onclick={() => pasteToField('tagInput')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+					class="rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -355,7 +383,7 @@
 				<button
 					type="button"
 					onclick={addTag}
-					class="rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 transition-colors"
+					class="rounded-md bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200"
 				>
 					Add
 				</button>
@@ -381,30 +409,34 @@
 		</div>
 
 		<div>
-			<label for="followUpDate" class="block text-sm font-medium text-gray-700 mb-1">Follow-up Date</label>
-			<p class="text-xs text-gray-500 mb-2">Set a reminder date to follow up if you haven't heard back.</p>
+			<label for="followUpDate" class="mb-1 block text-sm font-medium text-gray-700"
+				>Follow-up Date</label
+			>
+			<p class="mb-2 text-xs text-gray-500">
+				Set a reminder date to follow up if you haven't heard back.
+			</p>
 			<input
 				id="followUpDate"
 				type="date"
 				bind:value={formData.followUpDate}
-				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 			/>
 		</div>
 
 		<div>
-			<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+			<label for="notes" class="mb-1 block text-sm font-medium text-gray-700">Notes</label>
 			<div class="flex gap-2">
 				<textarea
 					id="notes"
 					bind:value={formData.notes}
 					rows="4"
 					placeholder="Any additional notes about this application..."
-					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				></textarea>
 				<button
 					type="button"
 					onclick={() => pasteToField('notes')}
-					class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors self-start"
+					class="self-start rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
 					title="Paste from clipboard"
 				>
 					📋
@@ -417,18 +449,17 @@
 			<button
 				type="submit"
 				disabled={loading}
-				class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+				class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{loading ? 'Creating...' : 'Create Application'}
 			</button>
 			<button
 				type="button"
 				onclick={() => goto('/job-applications')}
-				class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+				class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
 			>
 				Cancel
 			</button>
 		</div>
 	</form>
 </div>
-
