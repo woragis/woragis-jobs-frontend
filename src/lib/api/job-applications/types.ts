@@ -28,6 +28,8 @@ export interface JobApplication {
 	status: ApplicationStatus;
 	errorMessage?: string;
 	resumeId?: string | null;
+	jobLevelId?: string | null;
+	contractTypeId?: string | null;
 	salaryMin?: number | null;
 	salaryMax?: number | null;
 	salaryCurrency?: string;
@@ -69,6 +71,8 @@ export interface CreateJobApplicationRequest {
 	jobTitle: string;
 	jobUrl: string;
 	website: string;
+	jobLevelId?: string;
+	contractTypeId?: string;
 	interestLevel?: InterestLevel;
 	tags?: string[];
 	followUpDate?: string;

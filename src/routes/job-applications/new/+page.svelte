@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { jobApplicationsApi, type CreateJobApplicationRequest } from '$lib/api/job-applications';
+	import { jobLevelsApi, type JobLevel } from '$lib/api/job-levels';
+	import { contractTypesApi, type ContractType } from '$lib/api/contract-types';
 	import { goto } from '$app/navigation';
 	import { config } from '$lib/config';
 
@@ -10,6 +12,8 @@
 		jobTitle: '',
 		jobUrl: '',
 		website: 'linkedin',
+		jobLevelId: undefined,
+		contractTypeId: undefined,
 		interestLevel: undefined,
 		tags: [],
 		notes: '',
@@ -19,6 +23,10 @@
 	let loading = false;
 	let error: string | null = null;
 	let tagInput = '';
+	let jobLevels: JobLevel[] = [];
+	let contractTypes: ContractType[] = [];
+	let loadingLevels = true;
+	let loadingTypes = true;
 
 	// Paste functionality
 	async function pasteToField(field: keyof CreateJobApplicationRequest | 'tagInput') {
@@ -38,6 +46,24 @@
 		}
 	}
 
+	// Fetch reference data (job levels and contract types)
+	async function fetchReferenceData() {
+		try {
+			const [levels, types] = await Promise.all([
+				jobLevelsApi.list(),
+				contractTypesApi.list()
+			]);
+			jobLevels = levels;
+			contractTypes = types;
+		} catch (err) {
+			console.error('Failed to fetch reference data:', err);
+			// Continue without failing - these are optional fields
+		} finally {
+			loadingLevels = false;
+			loadingTypes = false;
+		}
+	}
+
 	// Fetch CSRF token on page load
 	onMount(async () => {
 		try {
@@ -53,6 +79,9 @@
 			// The middleware generates tokens for all GET requests, regardless of auth status
 			console.debug('CSRF token fetch completed (may have errors, but token should be set)');
 		}
+
+		// Fetch reference data
+		await fetchReferenceData();
 	});
 
 	const websiteOptions = ['linkedin', 'glassdoor', 'indeed', 'monster', 'other'];
@@ -219,6 +248,51 @@
 					<option value={website}>{website.charAt(0).toUpperCase() + website.slice(1)}</option>
 				{/each}
 			</select>
+		</div>
+
+		<!-- Job Level and Contract Type -->
+		<div class="grid grid-cols-2 gap-4">
+			<div>
+				<label for="jobLevel" class="block text-sm font-medium text-gray-700 mb-1">Job Level</label>
+				<p class="text-xs text-gray-500 mb-2">Seniority and intensity classification</p>
+				<select
+					id="jobLevel"
+					bind:value={formData.jobLevelId}
+					disabled={loadingLevels}
+					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+				>
+					<option value={undefined}>Select job level...</option>
+					{#if loadingLevels}
+						<option disabled>Loading...</option>
+					{:else}
+						{#each jobLevels as level}
+							<option value={level.id}>
+								{level.seniority.charAt(0).toUpperCase() + level.seniority.slice(1)} - {level.intensity.charAt(0).toUpperCase() + level.intensity.slice(1)}
+							</option>
+						{/each}
+					{/if}
+				</select>
+			</div>
+
+			<div>
+				<label for="contractType" class="block text-sm font-medium text-gray-700 mb-1">Contract Type</label>
+				<p class="text-xs text-gray-500 mb-2">Employment type for this position</p>
+				<select
+					id="contractType"
+					bind:value={formData.contractTypeId}
+					disabled={loadingTypes}
+					class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+				>
+					<option value={undefined}>Select contract type...</option>
+					{#if loadingTypes}
+						<option disabled>Loading...</option>
+					{:else}
+						{#each contractTypes as type}
+							<option value={type.id}>{type.name.charAt(0).toUpperCase() + type.name.slice(1).replace(/_/g, ' ')}</option>
+						{/each}
+					{/if}
+				</select>
+			</div>
 		</div>
 
 		<!-- Optional Fields -->
