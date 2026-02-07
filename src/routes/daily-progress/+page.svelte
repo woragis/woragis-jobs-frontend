@@ -61,41 +61,41 @@
 </script>
 
 <div class="min-h-screen bg-gray-50">
-	<div class="max-w-6xl mx-auto py-8 px-4">
+	<div class="mx-auto max-w-6xl px-4 py-8">
 		<!-- Header -->
 		<div class="mb-8">
-			<h1 class="text-3xl font-bold text-gray-900 mb-2">Daily Progress</h1>
+			<h1 class="mb-2 text-3xl font-bold text-gray-900">Daily Progress</h1>
 			<p class="text-gray-600">Track your job application targets and daily progress</p>
 		</div>
 
 		{#if $objectiveExists}
 			<!-- Current Objectives Card -->
-			<div class="bg-white rounded-lg shadow p-6 mb-6">
-				<div class="flex justify-between items-start">
+			<div class="mb-6 rounded-lg bg-white p-6 shadow">
+				<div class="flex items-start justify-between">
 					<div>
-						<h2 class="text-lg font-semibold text-gray-900 mb-4">Current Objectives</h2>
+						<h2 class="mb-4 text-lg font-semibold text-gray-900">Current Objectives</h2>
 						<div class="grid grid-cols-4 gap-4">
 							<div>
-								<p class="text-sm text-gray-600 mb-1">Total Daily</p>
+								<p class="mb-1 text-sm text-gray-600">Total Daily</p>
 								<p class="text-2xl font-bold text-blue-600">{$currentObjective?.totalTarget}</p>
 							</div>
 							<div>
-								<p class="text-sm text-gray-600 mb-1">Junior</p>
+								<p class="mb-1 text-sm text-gray-600">Junior</p>
 								<p class="text-2xl font-bold text-green-600">{$currentObjective?.juniorTarget}</p>
 							</div>
 							<div>
-								<p class="text-sm text-gray-600 mb-1">Pleno/Mid</p>
+								<p class="mb-1 text-sm text-gray-600">Pleno/Mid</p>
 								<p class="text-2xl font-bold text-amber-600">{$currentObjective?.plenoTarget}</p>
 							</div>
 							<div>
-								<p class="text-sm text-gray-600 mb-1">Senior</p>
+								<p class="mb-1 text-sm text-gray-600">Senior</p>
 								<p class="text-2xl font-bold text-red-600">{$currentObjective?.seniorTarget}</p>
 							</div>
 						</div>
 					</div>
 					<button
 						on:click={() => (showEditModal = true)}
-						class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+						class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 					>
 						Edit
 					</button>
@@ -103,7 +103,7 @@
 			</div>
 
 			<!-- Main Content -->
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<!-- Today's Progress (spans 1 column on lg) -->
 				<div class="lg:col-span-1">
 					<DailyProgressWidget />
@@ -115,21 +115,21 @@
 				</div>
 			</div>
 		{:else}
-			<div class="text-center py-16">
-				<p class="text-gray-600 mb-4">No objectives set yet. Please set your daily objectives.</p>
+			<div class="py-16 text-center">
+				<p class="mb-4 text-gray-600">No objectives set yet. Please set your daily objectives.</p>
 			</div>
 		{/if}
 
 		<!-- Edit Modal -->
 		{#if showEditModal}
-			<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-				<div class="bg-white rounded-lg shadow-lg p-8 w-96 max-w-full">
-					<h2 class="text-2xl font-bold mb-4">Update Your Objectives</h2>
+			<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+				<div class="w-96 max-w-full rounded-lg bg-white p-8 shadow-lg">
+					<h2 class="mb-4 text-2xl font-bold">Update Your Objectives</h2>
 
 					<form on:submit|preventDefault={handleUpdateObjective} class="space-y-4">
 						<!-- Total Target -->
 						<div>
-							<label for="editTotalTarget" class="block text-sm font-medium text-gray-700 mb-1">
+							<label for="editTotalTarget" class="mb-1 block text-sm font-medium text-gray-700">
 								Total Daily Target
 							</label>
 							<input
@@ -137,13 +137,13 @@
 								id="editTotalTarget"
 								bind:value={editTotalTarget}
 								min="0"
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							/>
 						</div>
 
 						<!-- Junior Target -->
 						<div>
-							<label for="editJuniorTarget" class="block text-sm font-medium text-gray-700 mb-1">
+							<label for="editJuniorTarget" class="mb-1 block text-sm font-medium text-gray-700">
 								Junior Level Target
 							</label>
 							<input
@@ -151,13 +151,13 @@
 								id="editJuniorTarget"
 								bind:value={editJuniorTarget}
 								min="0"
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							/>
 						</div>
 
 						<!-- Pleno Target -->
 						<div>
-							<label for="editPlenoTarget" class="block text-sm font-medium text-gray-700 mb-1">
+							<label for="editPlenoTarget" class="mb-1 block text-sm font-medium text-gray-700">
 								Pleno/Mid-Level Target
 							</label>
 							<input
@@ -165,13 +165,13 @@
 								id="editPlenoTarget"
 								bind:value={editPlenoTarget}
 								min="0"
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							/>
 						</div>
 
 						<!-- Senior Target -->
 						<div>
-							<label for="editSeniorTarget" class="block text-sm font-medium text-gray-700 mb-1">
+							<label for="editSeniorTarget" class="mb-1 block text-sm font-medium text-gray-700">
 								Senior Level Target
 							</label>
 							<input
@@ -179,13 +179,13 @@
 								id="editSeniorTarget"
 								bind:value={editSeniorTarget}
 								min="0"
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 							/>
 						</div>
 
 						<!-- Error Messages -->
 						{#if editError}
-							<div class="p-3 bg-red-50 border border-red-200 rounded-md">
+							<div class="rounded-md border border-red-200 bg-red-50 p-3">
 								<p class="text-sm text-red-700">{editError}</p>
 							</div>
 						{/if}
@@ -195,14 +195,14 @@
 							<button
 								type="submit"
 								disabled={editLoading}
-								class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+								class="flex-1 rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
 							>
 								{editLoading ? 'Saving...' : 'Update'}
 							</button>
 							<button
 								type="button"
 								on:click={() => (showEditModal = false)}
-								class="flex-1 bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 font-medium transition-colors"
+								class="flex-1 rounded-md bg-gray-300 px-4 py-2 font-medium text-gray-800 transition-colors hover:bg-gray-400"
 							>
 								Cancel
 							</button>

@@ -85,21 +85,21 @@
 	}
 </script>
 
-<div class="bg-white rounded-lg shadow p-6">
-	<h3 class="text-lg font-semibold text-gray-900 mb-4">Progress History</h3>
+<div class="rounded-lg bg-white p-6 shadow">
+	<h3 class="mb-4 text-lg font-semibold text-gray-900">Progress History</h3>
 
 	<!-- Controls -->
 	<div class="mb-6 space-y-4">
 		<!-- Preset Selection -->
 		<div>
-			<label for="preset-select" class="block text-sm font-medium text-gray-700 mb-2">View</label>
+			<label for="preset-select" class="mb-2 block text-sm font-medium text-gray-700">View</label>
 			<div id="preset-select" class="flex gap-2">
 				<button
 					on:click={() => {
 						selectedPreset = '7days';
 						handlePresetChange();
 					}}
-					class={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+					class={`rounded px-3 py-2 text-sm font-medium transition-colors ${
 						!useCustomRange && selectedPreset === '7days'
 							? 'bg-blue-600 text-white'
 							: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -112,7 +112,7 @@
 						selectedPreset = '30days';
 						handlePresetChange();
 					}}
-					class={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+					class={`rounded px-3 py-2 text-sm font-medium transition-colors ${
 						!useCustomRange && selectedPreset === '30days'
 							? 'bg-blue-600 text-white'
 							: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -125,7 +125,7 @@
 						selectedPreset = '90days';
 						handlePresetChange();
 					}}
-					class={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+					class={`rounded px-3 py-2 text-sm font-medium transition-colors ${
 						!useCustomRange && selectedPreset === '90days'
 							? 'bg-blue-600 text-white'
 							: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -138,12 +138,8 @@
 
 		<!-- Custom Range -->
 		<div>
-			<label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-				<input
-					type="checkbox"
-					bind:checked={useCustomRange}
-					class="rounded border-gray-300"
-				/>
+			<label class="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+				<input type="checkbox" bind:checked={useCustomRange} class="rounded border-gray-300" />
 				Custom Range
 			</label>
 			{#if useCustomRange}
@@ -152,13 +148,13 @@
 						type="date"
 						bind:value={fromDate}
 						on:change={handleCustomRangeChange}
-						class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 					/>
 					<input
 						type="date"
 						bind:value={toDate}
 						on:change={handleCustomRangeChange}
-						class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 					/>
 				</div>
 			{/if}
@@ -173,20 +169,20 @@
 				{@const chartData = getChartData($historicalProgressStore, metric)}
 				{@const maxValue = Math.max(...chartData.map((d) => Math.max(d.count, d.target)))}
 				<div>
-					<h4 class="text-sm font-semibold text-gray-700 mb-3">
+					<h4 class="mb-3 text-sm font-semibold text-gray-700">
 						{getMetricLabel(metric)}
 					</h4>
 					<div class="space-y-2">
 						{#each chartData as item, i}
 							<div class="flex items-center gap-2">
-								<div class="w-12 text-xs text-gray-600 text-right">
+								<div class="w-12 text-right text-xs text-gray-600">
 									{formatDate(item.date)}
 								</div>
 								<div class="flex-1">
 									<div class="flex gap-1">
 										<!-- Target bar (light) -->
 										<div
-											class="bg-gray-200 rounded"
+											class="rounded bg-gray-200"
 											style={`width: ${(item.target / maxValue) * 100}%`}
 										>
 											<div class="h-6"></div>
@@ -205,7 +201,7 @@
 										{/if}
 									</div>
 								</div>
-								<div class="w-16 text-sm text-gray-700 text-right">
+								<div class="w-16 text-right text-sm text-gray-700">
 									{item.count}/{item.target}
 								</div>
 							</div>
@@ -215,7 +211,7 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="text-center py-8 text-gray-500">
+		<div class="py-8 text-center text-gray-500">
 			<p>No data available for the selected period</p>
 		</div>
 	{/if}

@@ -1,5 +1,12 @@
 import { writable, derived } from 'svelte/store';
-import { dailyObjectivesApi, type DailyObjective, type DailyProgress, type HistoryPreset } from '$lib/api/daily-objectives';
+import {
+	dailyObjectivesApi,
+	type DailyObjective,
+	type DailyProgress,
+	type HistoryPreset
+} from '$lib/api/daily-objectives';
+import { toastStore } from '$lib/stores/toast';
+import { authStore } from '$lib/stores/auth';
 
 /**
  * Daily Objectives Store
@@ -22,7 +29,7 @@ const createObjectivesStore = () => {
 		historicalProgress: [],
 		isLoading: false,
 		error: null,
-		hasObjective: false,
+		hasObjective: false
 	});
 
 	/**
@@ -40,15 +47,22 @@ const createObjectivesStore = () => {
 				objective,
 				todayProgress,
 				hasObjective: true,
-				isLoading: false,
+				isLoading: false
 			}));
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to load objectives';
+			let errorMsg = err instanceof Error ? err.message : 'Failed to load objectives';
+			// Global auth error handling
+			if (errorMsg.includes('401') || errorMsg.includes('403')) {
+				authStore.clear();
+				toastStore.showToast('error', 'Session expired. Please log in again.');
+			} else {
+				toastStore.showToast('error', errorMsg);
+			}
 			update((state) => ({
 				...state,
 				hasObjective: false,
 				isLoading: false,
-				error: errorMsg,
+				error: errorMsg
 			}));
 		}
 	}
@@ -69,23 +83,29 @@ const createObjectivesStore = () => {
 				totalTarget,
 				juniorTarget,
 				plenoTarget,
-				seniorTarget,
+				seniorTarget
 			});
 
 			update((state) => ({
 				...state,
 				objective,
 				hasObjective: true,
-				isLoading: false,
+				isLoading: false
 			}));
 
 			return objective;
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to create objectives';
+			let errorMsg = err instanceof Error ? err.message : 'Failed to create objectives';
+			if (errorMsg.includes('401') || errorMsg.includes('403')) {
+				authStore.clear();
+				toastStore.showToast('error', 'Session expired. Please log in again.');
+			} else {
+				toastStore.showToast('error', errorMsg);
+			}
 			update((state) => ({
 				...state,
 				isLoading: false,
-				error: errorMsg,
+				error: errorMsg
 			}));
 			throw err;
 		}
@@ -107,22 +127,28 @@ const createObjectivesStore = () => {
 				totalTarget,
 				juniorTarget,
 				plenoTarget,
-				seniorTarget,
+				seniorTarget
 			});
 
 			update((state) => ({
 				...state,
 				objective,
-				isLoading: false,
+				isLoading: false
 			}));
 
 			return objective;
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to update objectives';
+			let errorMsg = err instanceof Error ? err.message : 'Failed to update objectives';
+			if (errorMsg.includes('401') || errorMsg.includes('403')) {
+				authStore.clear();
+				toastStore.showToast('error', 'Session expired. Please log in again.');
+			} else {
+				toastStore.showToast('error', errorMsg);
+			}
 			update((state) => ({
 				...state,
 				isLoading: false,
-				error: errorMsg,
+				error: errorMsg
 			}));
 			throw err;
 		}
@@ -136,13 +162,19 @@ const createObjectivesStore = () => {
 			const todayProgress = await dailyObjectivesApi.getTodayProgress();
 			update((state) => ({
 				...state,
-				todayProgress,
+				todayProgress
 			}));
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to load today progress';
+			let errorMsg = err instanceof Error ? err.message : 'Failed to load today progress';
+			if (errorMsg.includes('401') || errorMsg.includes('403')) {
+				authStore.clear();
+				toastStore.showToast('error', 'Session expired. Please log in again.');
+			} else {
+				toastStore.showToast('error', errorMsg);
+			}
 			update((state) => ({
 				...state,
-				error: errorMsg,
+				error: errorMsg
 			}));
 		}
 	}
@@ -150,26 +182,24 @@ const createObjectivesStore = () => {
 	/**
 	 * Load historical progress
 	 */
-	async function loadHistoricalProgress(
-		preset?: HistoryPreset,
-		from?: string,
-		to?: string
-	) {
+	async function loadHistoricalProgress(preset?: HistoryPreset, from?: string, to?: string) {
 		try {
-			const historicalProgress = await dailyObjectivesApi.getHistoricalProgress(
-				preset,
-				from,
-				to
-			);
+			const historicalProgress = await dailyObjectivesApi.getHistoricalProgress(preset, from, to);
 			update((state) => ({
 				...state,
-				historicalProgress,
+				historicalProgress
 			}));
 		} catch (err) {
-			const errorMsg = err instanceof Error ? err.message : 'Failed to load historical progress';
+			let errorMsg = err instanceof Error ? err.message : 'Failed to load historical progress';
+			if (errorMsg.includes('401') || errorMsg.includes('403')) {
+				authStore.clear();
+				toastStore.showToast('error', 'Session expired. Please log in again.');
+			} else {
+				toastStore.showToast('error', errorMsg);
+			}
 			update((state) => ({
 				...state,
-				error: errorMsg,
+				error: errorMsg
 			}));
 		}
 	}
@@ -188,7 +218,7 @@ const createObjectivesStore = () => {
 		updateObjective,
 		loadTodayProgress,
 		loadHistoricalProgress,
-		clearError,
+		clearError
 	};
 };
 

@@ -20,10 +20,7 @@ class DailyObjectivesApiClient {
 	 * Create user's daily objectives
 	 */
 	async createObjective(req: CreateObjectiveRequest): Promise<DailyObjective> {
-		const response = await this.client.post<ApiResponse<DailyObjective>>(
-			'/daily-objectives',
-			req
-		);
+		const response = await this.client.post<ApiResponse<DailyObjective>>('/daily-objectives', req);
 		return response.data.data;
 	}
 
@@ -39,10 +36,7 @@ class DailyObjectivesApiClient {
 	 * Update user's daily objectives
 	 */
 	async updateObjective(req: CreateObjectiveRequest): Promise<DailyObjective> {
-		const response = await this.client.patch<ApiResponse<DailyObjective>>(
-			'/daily-objectives',
-			req
-		);
+		const response = await this.client.patch<ApiResponse<DailyObjective>>('/daily-objectives', req);
 		return response.data.data;
 	}
 
@@ -50,9 +44,7 @@ class DailyObjectivesApiClient {
 	 * Get today's progress against objectives
 	 */
 	async getTodayProgress(): Promise<DailyProgress> {
-		const response = await this.client.get<ApiResponse<DailyProgress>>(
-			'/daily-progress/today'
-		);
+		const response = await this.client.get<ApiResponse<DailyProgress>>('/daily-progress/today');
 		return response.data.data;
 	}
 
