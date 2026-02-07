@@ -1,12 +1,12 @@
 <script lang="ts">
-import { onMount } from 'svelte';
-import { goto } from '$app/navigation';
-import './layout.css';
-import favicon from '$lib/assets/favicon.svg';
-import { authStore, isAuthenticated, currentUser } from '$lib/stores/auth';
-import { authApi } from '$lib/api/auth';
-import DailyObjectivesModal from '$lib/components/DailyObjectivesModal.svelte';
-import Toast from '$lib/components/Toast.svelte';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import './layout.css';
+	import favicon from '$lib/assets/favicon.svg';
+	import { authStore, isAuthenticated, currentUser } from '$lib/stores/auth';
+	import { authApi } from '$lib/api/auth';
+	import DailyObjectivesModal from '$lib/components/DailyObjectivesModal.svelte';
+	import Toast from '$lib/components/Toast.svelte';
 
 	let { children } = $props();
 	let mobileMenuOpen = $state(false);

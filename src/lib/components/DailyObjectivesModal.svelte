@@ -1,8 +1,8 @@
 <script lang="ts">
-import { onMount } from 'svelte';
-import { objectivesStore, objectiveExists } from '$lib/stores/objectives';
-import { objectivesLoading, objectivesError } from '$lib/stores/objectives';
-import { isAuthenticated } from '$lib/stores/auth';
+	import { onMount } from 'svelte';
+	import { objectivesStore, objectiveExists } from '$lib/stores/objectives';
+	import { objectivesLoading, objectivesError } from '$lib/stores/objectives';
+	import { isAuthenticated } from '$lib/stores/auth';
 
 	let showModal = false;
 	let totalTarget = 100;
@@ -16,7 +16,7 @@ import { isAuthenticated } from '$lib/stores/auth';
 		await objectivesStore.init();
 	});
 
- $: showModal = $isAuthenticated && !$objectiveExists;
+	$: showModal = $isAuthenticated && !$objectiveExists;
 
 	async function handleSubmit() {
 		submitError = '';
@@ -47,7 +47,12 @@ import { isAuthenticated } from '$lib/stores/auth';
 </script>
 
 {#if showModal && $isAuthenticated}
-	<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black" role="dialog" aria-modal="true" aria-labelledby="objectives-modal-title">
+	<div
+		class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="objectives-modal-title"
+	>
 		<div class="w-96 max-w-full rounded-lg bg-white p-8 shadow-lg" tabindex="-1">
 			<h2 id="objectives-modal-title" class="mb-2 text-2xl font-bold">Set Your Daily Objectives</h2>
 			<p class="mb-6 text-gray-600">
@@ -144,8 +149,20 @@ import { isAuthenticated } from '$lib/stores/auth';
 					{$objectivesLoading ? 'Saving...' : 'Save Objectives'}
 					{#if $objectivesLoading}
 						<span class="ml-2 inline-block align-middle" aria-hidden="true">
-							<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<svg
+								class="h-5 w-5 animate-spin text-white"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
 								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
 							</svg>
 						</span>
@@ -155,6 +172,7 @@ import { isAuthenticated } from '$lib/stores/auth';
 		</div>
 	</div>
 {/if}
+<!-- Modal only shows if authenticated -->
 
 <style>
 	/* Modal backdrop prevents scroll */
@@ -162,4 +180,3 @@ import { isAuthenticated } from '$lib/stores/auth';
 		overflow: hidden;
 	}
 </style>
-<!-- Modal only shows if authenticated -->
