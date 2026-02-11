@@ -99,8 +99,15 @@
 	}
 
 	async function handleSubmit() {
-		if (!formData.companyName || !formData.jobTitle || !formData.jobUrl || !formData.website) {
-			error = 'Please fill in all required fields';
+		if (
+			!formData.companyName ||
+			!formData.location ||
+			!formData.jobTitle ||
+			!formData.jobUrl ||
+			!formData.website
+		) {
+			error =
+				'Please fill in all required fields (Company Name, Location, Job Title, Job URL, Website)';
 			return;
 		}
 
@@ -312,13 +319,16 @@
 
 		<!-- Optional Fields -->
 		<div>
-			<label for="location" class="mb-1 block text-sm font-medium text-gray-700">Location</label>
+			<label for="location" class="mb-1 block text-sm font-medium text-gray-700"
+				>Location <span class="text-red-500">*</span></label
+			>
 			<div class="flex gap-2">
 				<input
 					id="location"
 					type="text"
 					bind:value={formData.location}
 					placeholder="City, State/Country"
+					required
 					class="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
